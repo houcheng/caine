@@ -1,0 +1,38 @@
+// In Ubuntu, requires sudo apt-get install openjfx
+buildscript {
+    dependencies {
+        classpath group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.7.0'
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'javafx-gradle-plugin'
+
+jfx {
+    mainClass = 'com.caine.ui.Main'
+    vendor = 'Houcheng'
+}
+
+dependencies {
+    compile(group: 'commons-io', name: 'commons-io', version: '2.4')
+    compile(group: 'com.google.guava', name: 'guava', version: '19.0')
+    compile(group: 'com.google.inject', name: 'guice', version: '4.1.0')
+    compile(group: 'org.jruby', name: 'jruby-complete', version: '9.1.6.0')
+
+    compile(fileTree(dir: 'libs', include: '*.jar'))
+
+    compile(group: 'org.projectlombok', name: 'lombok', version: '1.16.10')
+}
