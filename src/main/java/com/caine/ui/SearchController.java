@@ -81,6 +81,7 @@ public class SearchController implements Initializable {
         });
     }
 
+    @Inject
     public void updateDependency(QueryClient client) {
         this.client = client;
     }

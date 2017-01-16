@@ -26,7 +26,6 @@ public class MainModule extends AbstractModule {
     @Provides
     public SearchController controller(QueryClient client) throws IOException {
         SearchController controller = loader.getController();
-        controller.updateDependency(client);
         return controller;
     }
 

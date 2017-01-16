@@ -17,9 +17,10 @@ public class MainApplication extends Application {
         Injector injector = Guice.createInjector(new MainModule());
         // create UI and controller
         Parent root = injector.getInstance(Parent.class);
-        // fix controller dependency
-        QueryClient client = injector.getInstance(QueryClient.class);
-        injector.getInstance(SearchController.class).updateDependency(client);
+
+        // inject member on instance not created by Guice
+        injector.injectMembers(injector.getInstance(SearchController.class));
+
         // create plugin
         injector.getInstance(PluginManager.class);
 
