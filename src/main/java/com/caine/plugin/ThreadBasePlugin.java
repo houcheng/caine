@@ -1,6 +1,6 @@
 package com.caine.plugin;
 
-import com.caine.core.QueryServiceInterface;
+import com.caine.core.QueryService;
 import com.caine.ui.SearchController;
 
 import static java.lang.Thread.sleep;
@@ -8,7 +8,7 @@ import static java.lang.Thread.sleep;
 /**
  *
  */
-public abstract class ThreadBasePlugin implements Runnable, QueryServiceInterface {
+public abstract class ThreadBasePlugin implements Runnable, QueryService {
     private static final long QUERY_INPUT_DELAY_IN_MS = 100;
 
     protected final SearchController searchController;

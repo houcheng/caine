@@ -1,7 +1,5 @@
 package com.caine.core;
 
-import com.caine.ui.SearchController;
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.Setter;
 
@@ -11,7 +9,7 @@ import lombok.Setter;
 @Singleton
 public class QueryClient {
     @Setter
-    private QueryServiceInterface plugin;
+    private QueryService plugin;
 
     public void updateQuery(String query) {
         plugin.updateQuery(query);

@@ -1,6 +1,6 @@
 package com.caine.core;
 
-public interface QueryServiceInterface {
+public interface QueryService {
     void updateQuery(String queryString);
     void cancelQuery();
 }
