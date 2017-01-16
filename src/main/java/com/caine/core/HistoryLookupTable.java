@@ -13,7 +13,7 @@ import java.util.HashMap;
  */
 @Singleton
 public class HistoryLookupTable implements Serializable {
-    private static final String DATABASE_FOLDER_NAME = "data";
+    private static final String DATABASE_FOLDER_NAME = System.getProperty("user.home") + "/.config/caine/data";
     private static final String FSODB_FILENAME = "history.db";
 
     private HashMap<String, Long> history = new HashMap<>(100);

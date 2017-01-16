@@ -8,7 +8,6 @@ import com.google.inject.Singleton;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
-import lombok.Getter;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -46,13 +45,12 @@ public class SearchListOrganizer {
         listView.getSelectionModel().select(listIndex);
     }
 
-    private void clearListViews(String queryString) {
+    public void clearListViews(String queryString) {
         listQueryString = queryString;
         listIndex = -1;
         listItems.clear();
         listResults.clear();
         listView.setItems(listItems);
-        listView.setVisible(true);
     }
 
     // TODO: We'll need a core search plugin that search on history entries.
@@ -66,17 +64,20 @@ public class SearchListOrganizer {
             long priority = historyLookupTable.getLastAccessDate(result.getHandleUri());
             if (priority > 0) {
                 listItems.add(0, "[" + result.getDisplayText() + "]" );
+                listResults.add(0, result);
             } else {
                 listItems.add(result.getDisplayText());
+                listResults.add(result);
             }
-            listResults.add(result);
         }
     }
 
-    public void selectListItem() {
+    public QueryResult selectListItem() {
         if (listIndex >= 0) {
             QueryResult result = listResults.get(listIndex);
             historyLookupTable.access(result.getHandleUri());
+            return result;
         }
+        return null;
     }
 }

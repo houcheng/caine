@@ -16,9 +16,9 @@ class FileSearchPlugin
 
     @filedb = {}
     dirs.each do |dir|
-      Dir[dir].each do |f|
-        path = f.gsub "#{ENV['HOME']}", '~'
-        @filedb[path] = path.downcase
+      Dir[dir].each do |path|
+        keyword = path.gsub("#{ENV['HOME']}", '~').downcase
+        @filedb[path] = keyword
       end
     end
   end
@@ -28,14 +28,14 @@ class FileSearchPlugin
     t = Time.now
     keywords = input_query.downcase.split.sort_by { |x| x.length }.reverse
 
-    files = @filedb.keys
+    paths = @filedb.keys
     keywords.each do |keyword|
-      files = files.select {|f| @filedb[f].include?(keyword) }
+      paths = paths.select {|path| @filedb[path].include?(keyword) }
     end
 
     p Time.now - t
 
-    return files.map {|f| [ '', f.split('/').last, f] }
+    return paths.map {|path| [ '', path.split('/').last, path] }
   end
 end
 
