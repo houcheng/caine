@@ -55,20 +55,28 @@ public class SearchListOrganizer {
         listView.setVisible(true);
     }
 
+    // TODO: We'll need a core search plugin that search on history entries.
+    // The query result should add "keywords" field for this feature.
     public void appendSearchResultGUI(String queryString, QueryResultGenerator results) {
         if(! queryString.equals(listQueryString)) {
             clearListViews(queryString);
         }
 
-        int i = 0;
         for (QueryResult result: results.getResults()) {
-            i ++;
-            if (i % 5 == 0) {
-                listItems.add(0, "00" + result.getDisplayText());
+            long priority = historyLookupTable.getLastAccessDate(result.getHandleUri());
+            if (priority > 0) {
+                listItems.add(0, "[" + result.getDisplayText() + "]" );
             } else {
                 listItems.add(result.getDisplayText());
             }
             listResults.add(result);
+        }
+    }
+
+    public void selectListItem() {
+        if (listIndex >= 0) {
+            QueryResult result = listResults.get(listIndex);
+            historyLookupTable.access(result.getHandleUri());
         }
     }
 }

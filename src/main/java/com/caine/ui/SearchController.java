@@ -57,6 +57,10 @@ public class SearchController implements Initializable {
             System.out.println("down");
             searchListOrganizer.updateListIndexSelection(1);
             keyEvent.consume();
+        } else if(keyEvent.getCode() == KeyCode.ENTER) {
+            System.out.println("select");
+            searchListOrganizer.selectListItem();
+            keyEvent.consume();
         }
     }
 
