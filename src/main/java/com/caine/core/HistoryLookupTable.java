@@ -1,25 +1,66 @@
 package com.caine.core;
 
 import com.google.inject.Singleton;
+import com.sleepycat.je.*;
 
+import java.io.File;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 
 /**
- *
+ * Stores file access history in file based database.
  */
 @Singleton
-public class HistoryLookupTable {
-    HashMap<String, Long> temperatoryHistoryTable = new HashMap<>(100);
+public class HistoryLookupTable implements Serializable {
+    private static final String DATABASE_FOLDER_NAME = "data";
+    private static final String FSODB_FILENAME = "history.db";
+
+    private HashMap<String, Long> history = new HashMap<>(100);
+
+    private EnvironmentConfig environmentConfig = new EnvironmentConfig();
+    private DatabaseConfig config = new DatabaseConfig();
+    private Environment environment;
+    private Database database;
+
+    public HistoryLookupTable() {
+        environmentConfig.setAllowCreate(true);
+        environmentConfig.setTransactional(true);
+        config.setAllowCreate(true);
+        config.setTransactional(true);
+
+        environment = new Environment(new File(DATABASE_FOLDER_NAME), environmentConfig);
+        database = environment.openDatabase(null, FSODB_FILENAME, config);
+    }
 
     public long getLastAccessDate(String item) {
-        Long date = temperatoryHistoryTable.get(item);
-        if (date == null) {
-            return 0;
+        DatabaseEntry keyEntry = new DatabaseEntry(item.getBytes());
+        DatabaseEntry dataEntry = new DatabaseEntry();
+
+        if (database.get(null, keyEntry, dataEntry, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+            String string = new String(dataEntry.getData());
+            long value = Long.parseLong(string);
+            return value;
         }
-        return date;
+        return 0;
     }
 
     public void access(String item) {
-        temperatoryHistoryTable.put(item, System.currentTimeMillis());
+        try {
+            DatabaseEntry keyEntry = new DatabaseEntry(item.getBytes("UTF-8"));
+
+            Long now = System.currentTimeMillis();
+            DatabaseEntry dataEntry = new DatabaseEntry(String.valueOf(now).getBytes());
+
+            database.put(null, keyEntry, dataEntry);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void shutdown() {
+        database.close();
+        environment.close();
     }
 }
