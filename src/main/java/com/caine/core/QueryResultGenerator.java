@@ -1,8 +1,5 @@
 package com.caine.core;
 
-/**
- *
- */
-public class QueryResultGenerator {
-
+public interface QueryResultGenerator {
+    public Iterable<QueryResult> getResults();
 }

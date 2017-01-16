@@ -5,10 +5,11 @@ require 'java'
 java_package 'com.caine.ui'
 
 class FileSearchPlugin
-  CONFIG_YAML_FILENAME = "#{ENV['HOME']}/.config/caine/FileSearchPlugin.yaml"
+  SEARCH_ITEMS_LIMIT = 100
+  PLUGIN_CONFIG = "#{ENV['HOME']}/.config/caine/FileSearchPlugin.yaml"
 
   def initialize()
-    @config = YAML.load_file(CONFIG_YAML_FILENAME)
+    @config = YAML.load_file(PLUGIN_CONFIG)
 
     dirs = @config["dirs"].map { |s| s + '/**/*' }
                           .map { |s| s.gsub('~', "#{ENV['HOME']}")}
@@ -20,9 +21,9 @@ class FileSearchPlugin
         @filedb[path] = path.downcase
       end
     end
-
   end
 
+  # search result format: list of [ icon_uri, display_text, file_url]
   def search(input_query)
     t = Time.now
     keywords = input_query.downcase.split.sort_by { |x| x.length }.reverse
@@ -33,7 +34,8 @@ class FileSearchPlugin
     end
 
     p Time.now - t
-    return files
+
+    return files.map {|f| [ '', f.split('/').last, f] }
   end
 end
 
@@ -50,5 +52,5 @@ end
 
 do_test(plugin, 'aaa')
 do_test(plugin, 'gradle')
-
 =end
+

@@ -1,11 +1,17 @@
 package com.caine.plugin;
 
+import com.caine.core.QueryResult;
+import com.caine.core.QueryResultGenerator;
 import com.caine.ui.FileSearchPlugin;
 import com.caine.ui.SearchController;
+import com.google.common.base.Suppliers;
 import org.jruby.RubyArray;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class RubyPlugin extends ThreadBasePlugin {
     FileSearchPlugin plugin;
@@ -23,19 +29,36 @@ public class RubyPlugin extends ThreadBasePlugin {
             return;
         }
 
-        List<String> strings = callPluginSearch(queryString);
-
-        System.out.printf("Size of result: %d\n", strings.size());
-        searchController.appendSearchResult(queryString, strings);
-    }
-
-    private List<String> callPluginSearch(String queryString) {
         RubyArray results = (RubyArray) plugin.search(queryString);
 
-        List<String> strings = new LinkedList<>();
-        for (Object o : results) {
-            strings.add((String) o);
+        System.out.printf("Size of result: %d\n", results.size());
+        searchController.appendSearchResult(queryString, new RubyResultGenerator(results));
+    }
+
+    class RubyResultGenerator implements QueryResultGenerator {
+        private final RubyArray results;
+
+        RubyResultGenerator(RubyArray results) {
+            this.results = results;
         }
-        return strings;
+
+        @Override
+        public Iterable<QueryResult> getResults() {
+            return () -> {
+                return Stream.generate(new Supplier<QueryResult>() {
+                    int i = 0;
+
+                    @Override
+                    public QueryResult get() {
+                        RubyArray item = (RubyArray) results.get(i++);
+                        return QueryResult.builder()
+                                .displayIcon((String) item.get(0))
+                                .displayText((String) item.get(1))
+                                .handleUri((String) item.get(2))
+                                .build();
+                    }
+                }).limit(results.size()).iterator();
+            };
+        }
     }
 }
