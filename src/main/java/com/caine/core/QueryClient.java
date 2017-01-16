@@ -10,15 +10,8 @@ import lombok.Setter;
  */
 @Singleton
 public class QueryClient {
-    private final SearchController searchController;
-
     @Setter
     private QueryServiceInterface plugin;
-
-    @Inject
-    public QueryClient(SearchController searchController) {
-        this.searchController = searchController;
-    }
 
     public void updateQuery(String query) {
         plugin.updateQuery(query);

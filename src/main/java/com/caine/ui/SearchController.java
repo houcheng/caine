@@ -4,6 +4,7 @@ import com.caine.core.QueryClient;
 import com.caine.core.QueryResult;
 import com.caine.core.QueryResultGenerator;
 import com.caine.plugin.PluginManager;
+import com.google.inject.Inject;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -15,6 +16,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import lombok.Getter;
 
 import java.net.URL;
 import java.util.LinkedList;
@@ -24,6 +26,7 @@ import java.util.ResourceBundle;
 public class SearchController implements Initializable {
     @FXML
     public TextField input;
+    @Getter
     @FXML
     public ListView<String> listView;
 
@@ -35,6 +38,9 @@ public class SearchController implements Initializable {
     private String listQueryString;
     private int listIndex = -1;
 
+    public SearchController() {
+        System.out.println("controller created");
+    }
     public void handleKeyTyped(KeyEvent keyEvent) {
         this.queryString = input.getText();
         client.updateQuery(input.getText());
@@ -75,13 +81,12 @@ public class SearchController implements Initializable {
         });
     }
 
+    public void updateDependency(QueryClient client) {
+        this.client = client;
+    }
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        client = new QueryClient(this);
-        PluginManager manager = new PluginManager(this, client);
-        manager.load();
-
-        listView.setVisible(false);
         HBox.setHgrow(input, Priority.ALWAYS);
     }
 
