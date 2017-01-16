@@ -1,5 +1,6 @@
 .idea/
 .ruby-version
+.gradle/
 build/
 out/
 libs/
