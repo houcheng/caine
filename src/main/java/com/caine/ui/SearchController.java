@@ -10,16 +10,21 @@ import com.tulskiy.keymaster.common.Provider;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import lombok.Getter;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -29,18 +34,20 @@ import java.util.ResourceBundle;
  * Handles UI events and updates query results with help of SearchListOrganizer.
  */
 public class SearchController implements Initializable {
+
     private static final int MINIMUM_QUERY_STRING_LENGTH = 3;
 
     @FXML
-    public TextField input;
+    public TextField inputTextField;
+
     @Getter
     @FXML
     public ListView<String> listView;
 
-    private Provider keyProvider;
-    private HotKeyListener keyListener;
+    private Stage stage;
+    private Stage secondStage;
 
-    private QueryClient client;
+    private QueryClient queryClient;
     private SearchListOrganizer searchListOrganizer;
 
     private String queryString;
@@ -48,20 +55,27 @@ public class SearchController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        HBox.setHgrow(input, Priority.ALWAYS);
+        HBox.setHgrow(inputTextField, Priority.ALWAYS);
+        registerHotKey();
+    }
 
+    public void setStage(Stage stage) {
+        this.stage = stage;
+        Scene scene = SearchController.this.stage.getScene();
+        secondStage = new Stage(StageStyle.UTILITY);
+        secondStage.initModality(Modality.APPLICATION_MODAL);
     }
 
     @Inject
     public void updateDependency(QueryClient client, SearchListOrganizer searchListOrganizer) {
-        this.client = client;
+        this.queryClient = client;
         this.searchListOrganizer = searchListOrganizer;
     }
 
     public void handleKeyTyped(KeyEvent keyEvent) {
-        this.queryString = input.getText();
+        this.queryString = inputTextField.getText();
         if (this.queryString.length() >= MINIMUM_QUERY_STRING_LENGTH) {
-            client.updateQuery(input.getText());
+            queryClient.updateQuery(inputTextField.getText());
         }
     }
 
@@ -126,10 +140,58 @@ public class SearchController implements Initializable {
     }
 
     private void clearHideUI() {
-        input.setText("");
+        inputTextField.setText("");
         searchListOrganizer.clearListViews("");
-        listView.getScene().getWindow().hide();
+        stage.hide();
     }
+
+    private void registerHotKey() {
+        // To make runLater works.
+        Platform.setImplicitExit(false);
+
+        Provider keyProvider = Provider.getCurrentProvider(false);
+        HotKeyListener keyListener = new HotKeyListener() {
+            @Override
+            public void onHotKey(HotKey hotKey) {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        stage.show();
+                        stage.toFront();
+                        stage.hide();
+                        stage.show();
+                        stage.requestFocus();
+                        stage.setAlwaysOnTop(true);
+                        try {
+                            try {
+                                Thread.sleep(300);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            //remember the last location of mouse
+                            final Point oldMouseLocation = MouseInfo.getPointerInfo().getLocation();
+
+                            //simulate a mouse click on title bar of window
+                            Robot robot = new Robot();
+
+                            robot.mouseMove((int) stage.getScene().getWindow().getX() + 30,
+                                    (int) stage.getScene().getWindow().getY() + 10);
+                            robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+                            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+                            //move mouse to old location
+                            // robot.mouseMove((int) oldMouseLocation.getX(), (int) oldMouseLocation.getY());
+                        } catch (AWTException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+        };
+
+        keyProvider.register(KeyStroke.getKeyStroke("F1"), keyListener);
+        keyProvider.register(KeyStroke.getKeyStroke("F2"), keyListener);
+    }
+
 
     public void appendSearchResult(String queryString, QueryResultGenerator results) {
         if(! this.queryString.equals(queryString)) {
@@ -138,8 +200,9 @@ public class SearchController implements Initializable {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                searchListOrganizer.appendSearchResultGUI(queryString, results);
+                searchListOrganizer.appendQueryResult(queryString, results);
             }
         });
     }
+
 }
