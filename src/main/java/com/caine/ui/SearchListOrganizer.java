@@ -43,6 +43,23 @@ public class SearchListOrganizer {
         updateListSelectionByCurrentIndex();
     }
 
+    public void updateQueryString(String queryString) {
+
+        currentQueryString = queryString;
+        clearResultList();
+    }
+
+    public void appendQueryResult(String queryString, QueryResultGenerator results) {
+
+        if(! queryString.equals(currentQueryString)) {
+            updateQueryString(queryString);
+        }
+
+        for (QueryResult result: results.getResults()) {
+            appendQueryResultItem(result);
+        }
+    }
+
     private void updateListSelectionByCurrentIndex() {
         resultLiveView.getFocusModel().focus(currentIndex);
         resultLiveView.getSelectionModel().select(currentIndex);
@@ -55,28 +72,11 @@ public class SearchListOrganizer {
         currentIndex = newIndex;
     }
 
-    public void clear(String queryString) {
-
-        currentQueryString = queryString;
+    private void clearResultList() {
         currentIndex = -1;
-
         observableResultList.clear();
         queryResultList.clear();
-
         resultLiveView.setItems(observableResultList);
-    }
-
-    // TODO: We'll need a core search plugin that search on history entries.
-    // The query result should add "keywords" field for this feature.
-    public void appendQueryResult(String queryString, QueryResultGenerator results) {
-
-        if(! queryString.equals(currentQueryString)) {
-            clear(queryString);
-        }
-
-        for (QueryResult result: results.getResults()) {
-            appendQueryResultItem(result);
-        }
     }
 
     private void appendQueryResultItem(QueryResult result) {

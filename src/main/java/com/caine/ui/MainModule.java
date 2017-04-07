@@ -1,6 +1,6 @@
 package com.caine.ui;
 
-import com.caine.core.QueryClient;
+import com.caine.plugin.PluginManager;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import javafx.fxml.FXMLLoader;
@@ -25,14 +25,14 @@ public class MainModule extends AbstractModule {
     }
 
     @Provides
-    public SearchController controller(QueryClient client) throws IOException {
+    public SearchController controller() throws IOException {
         SearchController controller = loader.getController();
         return controller;
     }
 
     @Provides
-    public ListView listView(QueryClient client) throws IOException {
-        return controller(client).getListView();
+    public ListView listView() throws IOException {
+        return controller().getListView();
     }
 
 }

@@ -9,12 +9,15 @@ import org.jruby.RubyArray;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public class RubyPlugin extends ThreadBasePlugin {
+/**
+ * Ruby plugin implementation.
+ */
+public class RubyPluginImpl extends ThreadPluginImpl {
 
     // TODO: changed to RubyObject class and use reflection for calling search()
     FileSearchPlugin plugin;
 
-    public RubyPlugin(SearchController searchController, Class rubyClassType) throws IllegalAccessException,
+    public RubyPluginImpl(SearchController searchController, Class rubyClassType) throws IllegalAccessException,
             InstantiationException {
         super(searchController);
         plugin = (FileSearchPlugin) rubyClassType.newInstance();

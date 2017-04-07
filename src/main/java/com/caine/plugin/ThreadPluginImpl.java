@@ -1,23 +1,23 @@
 package com.caine.plugin;
 
-import com.caine.core.QueryService;
 import com.caine.ui.SearchController;
 
 import static java.lang.Thread.sleep;
 
 /**
- *
+ * Abstract thread based plugin implementation.
  */
-public abstract class ThreadBasePlugin implements Runnable, QueryService {
+public abstract class ThreadPluginImpl implements Runnable, Plugin {
     private static final long QUERY_INPUT_DELAY_IN_MS = 100;
 
     protected final SearchController searchController;
 
     private String queryString;
     private boolean queryUpdate;
+
     private Object synchronizeObject = new Object();
 
-    public ThreadBasePlugin(SearchController searchController) {
+    public ThreadPluginImpl(SearchController searchController) {
         this.searchController = searchController;
     }
 

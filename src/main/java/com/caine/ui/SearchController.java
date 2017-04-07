@@ -1,8 +1,8 @@
 package com.caine.ui;
 
-import com.caine.core.QueryClient;
 import com.caine.core.QueryResult;
 import com.caine.core.QueryResultGenerator;
+import com.caine.plugin.PluginManager;
 import com.google.inject.Inject;
 import com.tulskiy.keymaster.common.HotKey;
 import com.tulskiy.keymaster.common.HotKeyListener;
@@ -45,7 +45,7 @@ public class SearchController implements Initializable {
 
     private Stage stage;
 
-    private QueryClient queryClient;
+    private PluginManager queryClient;
     private SearchListOrganizer searchListOrganizer;
 
     private String queryString;
@@ -62,7 +62,7 @@ public class SearchController implements Initializable {
     }
 
     @Inject
-    public void injectDependencyByGuice(QueryClient client, SearchListOrganizer searchListOrganizer) {
+    public void injectDependencyByGuice(PluginManager client, SearchListOrganizer searchListOrganizer) {
         this.queryClient = client;
         this.searchListOrganizer = searchListOrganizer;
     }
@@ -144,7 +144,7 @@ public class SearchController implements Initializable {
 
     private void clearHideUI() {
         inputTextField.setText("");
-        searchListOrganizer.clear("");
+        searchListOrganizer.updateQueryString("");
         stage.hide();
     }
 
@@ -181,6 +181,7 @@ public class SearchController implements Initializable {
     }
 
     private Runnable createAppendQueryResultJob(final String queryString, final QueryResultGenerator results) {
+
         return new Runnable() {
             @Override
             public void run() {

@@ -1,7 +1,5 @@
 package com.caine.plugin;
 
-import com.caine.core.QueryClient;
-import com.caine.core.QueryService;
 import com.caine.ui.FileSearchPlugin;
 import com.caine.ui.SearchController;
 import com.google.inject.Inject;
@@ -15,19 +13,24 @@ import java.util.List;
  */
 @Singleton
 public class PluginManager {
-    private final QueryClient queryClient;
+    private final List<Plugin> pluginList = new LinkedList();
     private final SearchController searchController;
 
     @Inject
-    public PluginManager(SearchController searchController, QueryClient queryClient) {
+    public PluginManager(SearchController searchController) {
 
         this.searchController = searchController;
-        this.queryClient = queryClient;
 
         tryToLoadAllPlugins();
     }
 
-    public void tryToLoadAllPlugins() {
+    public void updateQuery(String query) {
+        for (Plugin plugin : pluginList) {
+            plugin.updateQuery(query);
+        }
+    }
+
+    private void tryToLoadAllPlugins() {
         try {
             loadAllPlugins();
         } catch (IllegalAccessException e) {
@@ -38,24 +41,15 @@ public class PluginManager {
     }
 
     // TODO: load only specified plugins
+    // TODO: Add a history entries search plugin for accelerating search
     private void loadAllPlugins() throws IllegalAccessException, InstantiationException {
-
-        List<QueryService> queryServiceList = new LinkedList();
-        queryServiceList.add(loadRubyPlugin(FileSearchPlugin.class));
-
-        configureAllPlugins(queryServiceList);
+        pluginList.add(loadRubyPlugin(FileSearchPlugin.class));
     }
 
-    private void configureAllPlugins(List<QueryService> queryServiceList) {
 
-        for (QueryService queryService : queryServiceList) {
-            queryClient.setPlugin(queryService);
-        }
-    }
+    private RubyPluginImpl loadRubyPlugin(Class rubyPluginClass) throws IllegalAccessException, InstantiationException {
 
-    private RubyPlugin loadRubyPlugin(Class rubyPluginClass) throws IllegalAccessException, InstantiationException {
-
-        RubyPlugin targetPlugin = new RubyPlugin(searchController, rubyPluginClass);
+        RubyPluginImpl targetPlugin = new RubyPluginImpl(searchController, rubyPluginClass);
         new Thread(targetPlugin).start();
 
         return targetPlugin;
