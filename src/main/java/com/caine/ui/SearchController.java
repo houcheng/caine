@@ -2,6 +2,7 @@ package com.caine.ui;
 
 import com.caine.core.QueryResult;
 import com.caine.core.QueryResultGenerator;
+import com.caine.exception.WindowNotFoundException;
 import com.caine.plugin.PluginManager;
 import com.google.inject.Inject;
 import com.tulskiy.keymaster.common.HotKey;
@@ -27,6 +28,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ResourceBundle;
+
+import static com.caine.ui.MainApplication.APPLICATION_WINDOW_NAME;
 
 /**
  * A JavaFX UI controller to handle UI events from SearchWindow.xml and update query
@@ -191,41 +194,52 @@ public class SearchController implements Initializable {
     }
 
     class ActivateWindowThread implements Runnable {
-
-        Stage stage;
-
         @Override
         public void run() {
-
-            updateStageFromSearchController();
-            activateWindow();
+            showWindow();
+            activateWindowInOwnThread();
         }
 
-        private void updateStageFromSearchController() {
-
-            sleepInMilliSecond(300);
-            stage = SearchController.this.stage;
-        }
-
-        // JavaFx request focus issue is not resolved.
-        // https://bugs.openjdk.java.net/browse/JDK-8120102
-        // TODO: call X11 library to activate window, reference wmctrl utility.
-        private void activateWindow() {
+        private void showWindow() {
             Stage windowStage = (Stage) stage.getScene().getWindow();
-
+            stage.show();
             windowStage.show();
-            windowStage.toFront();
-
-            stage.setAlwaysOnTop(true);
-            windowStage.setAlwaysOnTop(true);
-
             stage.requestFocus();
-            windowStage.requestFocus();
-            inputTextField.requestFocus();
 
         }
 
-        private void sleepInMilliSecond(int milliSecond) {
+        private void activateWindowInOwnThread() {
+            new Thread(createActivateWindowJob()).start();
+        }
+
+        private Runnable createActivateWindowJob() {
+
+            return new Runnable() {
+                private int MAX_RETRY_COUNT = 20;
+                private int ACTIVATE_WINDOW_DELAY_TIME_IN_MS = 50;
+                @Override
+                public void run() {
+
+                    int retryCount = 0;
+                    while (retryCount < MAX_RETRY_COUNT) {
+                        try {
+                            activateApplicationWindow();
+                            break;
+                        } catch (WindowNotFoundException ex) {
+                            retryCount ++;
+                            continue;
+                        }
+                    }
+                }
+
+                private void activateApplicationWindow() {
+                    waitUiThread(ACTIVATE_WINDOW_DELAY_TIME_IN_MS);
+                    (new ActivateWindowJni()).callActivateWindow(APPLICATION_WINDOW_NAME);
+                }
+            };
+        }
+
+        private void waitUiThread(int milliSecond) {
             try {
                 Thread.sleep(milliSecond);
             } catch (InterruptedException e) {

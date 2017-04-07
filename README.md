@@ -22,10 +22,23 @@ The software is composed of Java main program and Ruby scripts based plugins. We
 1. Run build.sh in src/plugins.
 2. Run ./gradlew jfxJar
 
-## Run
+### Build JNI X11 library
+
+1. sudo apt-get install libx11-dev
+2. cd src/jni/
+3. run ./generate_header.sh and ./build.sh
+
+## Run application
 
 ```
-java -jar build/jfx/app/project-jfx.jar
+java -Djava.library.path=./libs/ -jar build/jfx/app/project-jfx.jar
 ```
 
 Or `gradle jfxRun`, but this may left an orphan process after control-C exiting.
+
+
+## Reference
+
+
+[JNI call X11](http://codequirks.blogspot.ca/2008/06/using-xlib-with-jni.html)
+

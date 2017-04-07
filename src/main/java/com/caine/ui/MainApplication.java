@@ -10,6 +10,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 public class MainApplication extends Application {
+    public static final String APPLICATION_WINDOW_NAME="CaineInputWindow";
 
     private Injector injector;
     private Parent root;
@@ -27,6 +28,7 @@ public class MainApplication extends Application {
 
         primaryStage.initStyle(StageStyle.UNDECORATED);
         primaryStage.setScene(new Scene(root));
+        primaryStage.setTitle(APPLICATION_WINDOW_NAME);
         primaryStage.show();
     }
 
