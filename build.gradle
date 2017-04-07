@@ -1,4 +1,4 @@
-// In Ubuntu, requires sudo apt-get install openjfx
+
 buildscript {
     dependencies {
         classpath group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.7.0'
