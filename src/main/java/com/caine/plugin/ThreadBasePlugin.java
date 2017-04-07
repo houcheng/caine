@@ -29,10 +29,7 @@ public abstract class ThreadBasePlugin implements Runnable, QueryService {
             synchronizeObject.notify();
         }
     }
-    @Override
-    public void cancelQuery() {
 
-    }
 
     public void run() {
         while(true) {
@@ -47,6 +44,7 @@ public abstract class ThreadBasePlugin implements Runnable, QueryService {
     }
 
     protected abstract void performQuery(String query);
+    public abstract void cancelQuery();
 
     private void queryInputDelay() {
         try {

@@ -20,5 +20,12 @@ Dependency
 The software is composed of Java main program and Ruby scripts based plugins. We need to build the ruby plugins into jar file first, then use gradle to build the main program. The steps are:
 
 1. Run build.sh in src/plugins.
-2. Run ./gradlew in root
+2. Run ./gradlew jfxJar
 
+## Run
+
+```
+java -jar build/jfx/app/project-jfx.jar
+```
+
+Or `gradle jfxRun`, but this may left an orphan process after control-C exiting.

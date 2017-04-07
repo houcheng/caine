@@ -4,16 +4,14 @@ import com.caine.core.QueryResult;
 import com.caine.core.QueryResultGenerator;
 import com.caine.ui.FileSearchPlugin;
 import com.caine.ui.SearchController;
-import com.google.common.base.Suppliers;
 import org.jruby.RubyArray;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class RubyPlugin extends ThreadBasePlugin {
+
+    // TODO: changed to RubyObject class and use reflection for calling search()
     FileSearchPlugin plugin;
 
     public RubyPlugin(SearchController searchController, Class rubyClassType) throws IllegalAccessException,
@@ -22,42 +20,55 @@ public class RubyPlugin extends ThreadBasePlugin {
         plugin = (FileSearchPlugin) rubyClassType.newInstance();
     }
 
+    // TODO: changed to incrementally send results to UI
     @Override
     protected void performQuery(String queryString) {
+
         if (queryString.length() == 0) {
-            System.out.println("return with nothing");
             return;
         }
 
         RubyArray results = (RubyArray) plugin.search(queryString);
-
-        System.out.printf("Size of result: %d\n", results.size());
-        searchController.appendSearchResult(queryString, new RubyResultGenerator(results));
+        QueryResultGenerator queryResults = new RubyQueryResultGenerator(results);
+        searchController.appendSearchResult(queryString, queryResults);
     }
 
-    class RubyResultGenerator implements QueryResultGenerator {
+    @Override
+    public void cancelQuery() {
+        throw new UnsupportedOperationException();
+    }
+
+    class RubyQueryResultGenerator implements QueryResultGenerator {
+
         private final RubyArray results;
 
-        RubyResultGenerator(RubyArray results) {
+        RubyQueryResultGenerator(RubyArray results) {
             this.results = results;
         }
 
         @Override
         public Iterable<QueryResult> getResults() {
-            return () -> {
-                return Stream.generate(new Supplier<QueryResult>() {
-                    int i = 0;
 
-                    @Override
-                    public QueryResult get() {
-                        RubyArray item = (RubyArray) results.get(i++);
-                        return QueryResult.builder()
-                                .displayIcon((String) item.get(0))
-                                .displayText((String) item.get(1))
-                                .handleUri((String) item.get(2))
-                                .build();
-                    }
-                }).limit(results.size()).iterator();
+            return Stream.generate(createQueryResultSupplier())
+                         .limit(results.size())
+                         ::iterator;
+        }
+
+        private Supplier<QueryResult> createQueryResultSupplier() {
+
+            return new Supplier<QueryResult>() {
+
+                int index = 0;
+
+                @Override
+                public QueryResult get() {
+                    RubyArray item = (RubyArray) results.get(index++);
+                    return QueryResult.builder()
+                            .displayIcon((String) item.get(0))
+                            .displayText((String) item.get(1))
+                            .handleUri((String) item.get(2))
+                            .build();
+                }
             };
         }
     }

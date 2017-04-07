@@ -168,15 +168,25 @@ public class SearchController implements Initializable {
     }
 
     public void appendSearchResult(String queryString, QueryResultGenerator results) {
+
         if(! this.queryString.equals(queryString)) {
             return;
         }
-        Platform.runLater(new Runnable() {
+
+        appendQueryResultInUIThread(queryString, results);
+    }
+
+    private void appendQueryResultInUIThread(final String queryString, final QueryResultGenerator results) {
+        Platform.runLater(createAppendQueryResultJob(queryString, results));
+    }
+
+    private Runnable createAppendQueryResultJob(final String queryString, final QueryResultGenerator results) {
+        return new Runnable() {
             @Override
             public void run() {
                 searchListOrganizer.appendQueryResult(queryString, results);
             }
-        });
+        };
     }
 
     class ActivateWindowThread implements Runnable {
