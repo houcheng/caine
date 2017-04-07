@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 <VBox fx:id="inputId" alignment="center" xmlns="http://javafx.com/javafx/8.0.102-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.caine.ui.SearchController">
    <children>
-      <TextField fx:id="input" alignment="TOP_CENTER" onKeyTyped="#handleKeyTyped" onKeyPressed="#handleKeyPressed" promptText="search keyword">
+      <TextField fx:id="inputTextField" alignment="TOP_CENTER" onKeyTyped="#handleKeyTypedOnTextField" onKeyPressed="#handleKeyPressed" promptText="search keyword">
          <font>
             <Font size="26.0" />
          </font>
@@ -24,6 +24,6 @@
             <Insets />
          </FlowPane.margin>
       </TextField>
-      <ListView fx:id="listView" />
+      <ListView fx:id="listView" onMouseClicked="#handleMouseClickedOnList" onKeyPressed="#handleKeyPressed"/>
    </children>
 </VBox>

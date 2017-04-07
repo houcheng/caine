@@ -15,23 +15,22 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import lombok.Getter;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.InputEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ResourceBundle;
 
 /**
- * Handles UI events and updates query results with help of SearchListOrganizer.
+ * A JavaFX UI controller to handle UI events from SearchWindow.xml and update query
+ * results onto SearchListOrganizer
  */
 public class SearchController implements Initializable {
 
@@ -45,13 +44,11 @@ public class SearchController implements Initializable {
     public ListView<String> listView;
 
     private Stage stage;
-    private Stage secondStage;
 
     private QueryClient queryClient;
     private SearchListOrganizer searchListOrganizer;
 
     private String queryString;
-
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -62,17 +59,16 @@ public class SearchController implements Initializable {
     public void setStage(Stage stage) {
         this.stage = stage;
         Scene scene = SearchController.this.stage.getScene();
-        secondStage = new Stage(StageStyle.UTILITY);
-        secondStage.initModality(Modality.APPLICATION_MODAL);
     }
 
     @Inject
-    public void updateDependency(QueryClient client, SearchListOrganizer searchListOrganizer) {
+    public void injectDependencyByGuice(QueryClient client, SearchListOrganizer searchListOrganizer) {
         this.queryClient = client;
         this.searchListOrganizer = searchListOrganizer;
     }
 
-    public void handleKeyTyped(KeyEvent keyEvent) {
+    public void handleKeyTypedOnTextField(KeyEvent keyEvent) {
+
         this.queryString = inputTextField.getText();
         if (this.queryString.length() >= MINIMUM_QUERY_STRING_LENGTH) {
             queryClient.updateQuery(inputTextField.getText());
@@ -80,17 +76,24 @@ public class SearchController implements Initializable {
     }
 
     public void handleKeyPressed(KeyEvent keyEvent) {
+
+        System.out.println(keyEvent.toString());
+
         if(keyEvent.getCode() == KeyCode.UP) {
-            searchListOrganizer.updateListIndexSelection(-1);
+            searchListOrganizer.changeListSelectedItem(-1);
             keyEvent.consume();
         } else if(keyEvent.getCode() == KeyCode.DOWN) {
-            searchListOrganizer.updateListIndexSelection(1);
+            searchListOrganizer.changeListSelectedItem(1);
             keyEvent.consume();
         } else if(keyEvent.getCode() == KeyCode.ENTER) {
-            openQueryResult(searchListOrganizer.selectListItem());
+            openQueryResult(searchListOrganizer.getCurrentQueryResult());
             clearHideUI();
             keyEvent.consume();
         }
+    }
+
+    public void handleMouseClickedOnList(MouseEvent mouseEvent) {
+        searchListOrganizer.updateCurrentIndexByListSelection();
     }
 
     private void openQueryResult(QueryResult selectedResult) {
@@ -109,7 +112,7 @@ public class SearchController implements Initializable {
     }
 
     /**
-     * Open file for various operation systems. The windows and mac open utility reference this
+     * File open reference
      * http://stackoverflow.com/questions/18004150/desktop-api-is-not-supported-on-the-current-platform
      */
     private void openFile(String path) {
@@ -141,57 +144,28 @@ public class SearchController implements Initializable {
 
     private void clearHideUI() {
         inputTextField.setText("");
-        searchListOrganizer.clearListViews("");
+        searchListOrganizer.clear("");
         stage.hide();
     }
 
     private void registerHotKey() {
-        // To make runLater works.
+        // It makes runLater works.
         Platform.setImplicitExit(false);
 
         Provider keyProvider = Provider.getCurrentProvider(false);
-        HotKeyListener keyListener = new HotKeyListener() {
-            @Override
-            public void onHotKey(HotKey hotKey) {
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        stage.show();
-                        stage.toFront();
-                        stage.hide();
-                        stage.show();
-                        stage.requestFocus();
-                        stage.setAlwaysOnTop(true);
-                        try {
-                            try {
-                                Thread.sleep(300);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            //remember the last location of mouse
-                            final Point oldMouseLocation = MouseInfo.getPointerInfo().getLocation();
-
-                            //simulate a mouse click on title bar of window
-                            Robot robot = new Robot();
-
-                            robot.mouseMove((int) stage.getScene().getWindow().getX() + 30,
-                                    (int) stage.getScene().getWindow().getY() + 10);
-                            robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-                            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-                            //move mouse to old location
-                            // robot.mouseMove((int) oldMouseLocation.getX(), (int) oldMouseLocation.getY());
-                        } catch (AWTException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-            }
-        };
-
+        HotKeyListener keyListener = createHotKeyListener(new ActivateWindowThread());
         keyProvider.register(KeyStroke.getKeyStroke("F1"), keyListener);
         keyProvider.register(KeyStroke.getKeyStroke("F2"), keyListener);
     }
 
+    private HotKeyListener createHotKeyListener(ActivateWindowThread thread) {
+        return new HotKeyListener() {
+            @Override
+            public void onHotKey(HotKey hotKey) {
+                Platform.runLater(thread);
+            }
+        };
+    }
 
     public void appendSearchResult(String queryString, QueryResultGenerator results) {
         if(! this.queryString.equals(queryString)) {
@@ -205,4 +179,47 @@ public class SearchController implements Initializable {
         });
     }
 
+    class ActivateWindowThread implements Runnable {
+
+        Stage stage;
+
+        @Override
+        public void run() {
+
+            updateStageFromSearchController();
+            activateWindow();
+        }
+
+        private void updateStageFromSearchController() {
+
+            sleepInMilliSecond(300);
+            stage = SearchController.this.stage;
+        }
+
+        // JavaFx request focus issue is not resolved.
+        // https://bugs.openjdk.java.net/browse/JDK-8120102
+        // TODO: call X11 library to activate window, reference wmctrl utility.
+        private void activateWindow() {
+            Stage windowStage = (Stage) stage.getScene().getWindow();
+
+            windowStage.show();
+            windowStage.toFront();
+
+            stage.setAlwaysOnTop(true);
+            windowStage.setAlwaysOnTop(true);
+
+            stage.requestFocus();
+            windowStage.requestFocus();
+            inputTextField.requestFocus();
+
+        }
+
+        private void sleepInMilliSecond(int milliSecond) {
+            try {
+                Thread.sleep(milliSecond);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

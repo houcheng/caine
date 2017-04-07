@@ -18,6 +18,7 @@ public class MainModule extends AbstractModule {
 
     @Provides
     public Parent parent() throws IOException {
+
         // FXMLLoader getController issue: the URL must be provided during construction.
         loader = new FXMLLoader(getClass().getResource("/SearchWindow.fxml"));
         return loader.load();

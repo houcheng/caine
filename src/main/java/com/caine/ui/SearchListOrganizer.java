@@ -13,71 +13,94 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- *
+ * Handles content and UI status update of search list view.
  */
 @Singleton
 public class SearchListOrganizer {
-    private final ListView listView;
+
+    private final ListView resultLiveView;
     private final HistoryLookupTable historyLookupTable;
 
+    private ObservableList<String> observableResultList = FXCollections.observableArrayList();
+    private List<QueryResult> queryResultList = new LinkedList<>();
 
-    private List<QueryResult> listResults = new LinkedList<>();
-    private ObservableList<String> listItems = FXCollections.observableArrayList();
-    private String listQueryString;
-    private int listIndex = -1;
+    private String currentQueryString;
+    private int currentIndex = -1;
 
     @Inject
     public SearchListOrganizer(ListView listView, HistoryLookupTable historyLookupTable) {
-        this.listView = listView;
+        this.resultLiveView = listView;
         this.historyLookupTable = historyLookupTable;
     }
 
-
-    public void updateListIndexSelection(int indexDiff) {
-        int newIndex = listIndex + indexDiff;
-        if (newIndex < 0 || newIndex > listView.getItems().size()) {
-            return;
-        }
-
-        listIndex = newIndex;
-        listView.getFocusModel().focus(listIndex);
-        // listView.scrollTo(listIndex);
-        listView.getSelectionModel().select(listIndex);
+    public void updateCurrentIndexByListSelection() {
+        currentIndex = resultLiveView.getSelectionModel().getSelectedIndex();
     }
 
-    public void clearListViews(String queryString) {
-        listQueryString = queryString;
-        listIndex = -1;
-        listItems.clear();
-        listResults.clear();
-        listView.setItems(listItems);
+    public void changeListSelectedItem(int offset) {
+
+        updateCurrentIndex(currentIndex + offset);
+        updateListSelectionByCurrentIndex();
+    }
+
+    private void updateListSelectionByCurrentIndex() {
+        resultLiveView.getFocusModel().focus(currentIndex);
+        resultLiveView.getSelectionModel().select(currentIndex);
+    }
+
+    private void updateCurrentIndex(int newIndex) {
+        if (newIndex < 0 || newIndex > resultLiveView.getItems().size()) {
+            return;
+        }
+        currentIndex = newIndex;
+    }
+
+    public void clear(String queryString) {
+
+        currentQueryString = queryString;
+        currentIndex = -1;
+
+        observableResultList.clear();
+        queryResultList.clear();
+
+        resultLiveView.setItems(observableResultList);
     }
 
     // TODO: We'll need a core search plugin that search on history entries.
     // The query result should add "keywords" field for this feature.
-    public void appendSearchResultGUI(String queryString, QueryResultGenerator results) {
-        if(! queryString.equals(listQueryString)) {
-            clearListViews(queryString);
+    public void appendQueryResult(String queryString, QueryResultGenerator results) {
+
+        if(! queryString.equals(currentQueryString)) {
+            clear(queryString);
         }
 
         for (QueryResult result: results.getResults()) {
-            long priority = historyLookupTable.getLastAccessDate(result.getHandleUri());
-            if (priority > 0) {
-                listItems.add(0, "[" + result.getDisplayText() + "]" );
-                listResults.add(0, result);
-            } else {
-                listItems.add(result.getDisplayText());
-                listResults.add(result);
-            }
+            appendQueryResultItem(result);
         }
     }
 
-    public QueryResult selectListItem() {
-        if (listIndex >= 0) {
-            QueryResult result = listResults.get(listIndex);
+    private void appendQueryResultItem(QueryResult result) {
+
+        long priority = historyLookupTable.getLastAccessDate(result.getHandleUri());
+
+        if (priority > 0) {
+            observableResultList.add(0, "[" + result.getDisplayText() + "]" );
+            queryResultList.add(0, result);
+
+        } else {
+            observableResultList.add(result.getDisplayText());
+            queryResultList.add(result);
+        }
+    }
+
+    public QueryResult getCurrentQueryResult() {
+
+        if (currentIndex >= 0) {
+            QueryResult result = queryResultList.get(currentIndex);
             historyLookupTable.access(result.getHandleUri());
             return result;
         }
+
         return null;
     }
 }
