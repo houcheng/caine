@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 /**
  * Ruby plugin implementation.
  */
-public class RubyPluginImpl extends ThreadPluginImpl {
+public class RubyPluginImpl extends AbstractPluginImpl {
 
     // TODO: changed to RubyObject class and use reflection for calling search()
     FileSearchPlugin plugin;
@@ -23,17 +23,21 @@ public class RubyPluginImpl extends ThreadPluginImpl {
         plugin = (FileSearchPlugin) rubyClassType.newInstance();
     }
 
-    // TODO: changed to incrementally send results to UI
     @Override
-    protected void performQuery(String queryString) {
+    protected void pollQueryResult(String queryString, int pageNumber) {
 
         if (queryString.length() == 0) {
             return;
         }
 
-        RubyArray results = (RubyArray) plugin.search(queryString);
+        RubyArray results = (RubyArray) plugin.search(queryString, pageNumber);
         QueryResultGenerator queryResults = new RubyQueryResultGenerator(results);
         searchController.appendSearchResult(queryString, queryResults);
+    }
+
+    @Override
+    protected boolean hasMoreQueryResult() {
+        return (Boolean) plugin.hasMoreSearchResult();
     }
 
     @Override

@@ -7,7 +7,7 @@ import static java.lang.Thread.sleep;
 /**
  * Abstract thread based plugin implementation.
  */
-public abstract class ThreadPluginImpl implements Runnable, Plugin {
+public abstract class AbstractPluginImpl implements Runnable, Plugin {
     private static final long QUERY_INPUT_DELAY_IN_MS = 100;
 
     protected final SearchController searchController;
@@ -17,7 +17,7 @@ public abstract class ThreadPluginImpl implements Runnable, Plugin {
 
     private Object synchronizeObject = new Object();
 
-    public ThreadPluginImpl(SearchController searchController) {
+    public AbstractPluginImpl(SearchController searchController) {
         this.searchController = searchController;
     }
 
@@ -37,16 +37,27 @@ public abstract class ThreadPluginImpl implements Runnable, Plugin {
                 waitQueryUpdate();
             }
 
-            queryInputDelay();
+            delayForInput();
+
             String query = getQueryString();
-            performQuery(query);
+            queryPluginImpl(query);
         }
     }
 
-    protected abstract void performQuery(String query);
+    private void queryPluginImpl(String query) {
+        int pageNumber = 0;
+        do {
+            pollQueryResult(query, pageNumber ++);
+        } while (hasMoreQueryResult());
+    }
+
+    protected abstract void pollQueryResult(String query, int pageNumber);
+    protected abstract boolean hasMoreQueryResult();
+
     public abstract void cancelQuery();
 
-    private void queryInputDelay() {
+    // TODO: delay until no input for certain time
+    private void delayForInput() {
         try {
             sleep(QUERY_INPUT_DELAY_IN_MS);
         } catch (InterruptedException e) {

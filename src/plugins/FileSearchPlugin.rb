@@ -24,7 +24,7 @@ class FileSearchPlugin
   end
 
   # search result format: list of [ icon_uri, display_text, file_url]
-  def search(input_query)
+  def search(input_query, page_number)
     t = Time.now
     keywords = input_query.downcase.split.sort_by { |x| x.length }.reverse
 
@@ -36,6 +36,10 @@ class FileSearchPlugin
     p Time.now - t
 
     return paths.map {|path| [ '', path.split('/').last, path] }
+  end
+
+  def hasMoreSearchResult()
+    return false
   end
 end
 

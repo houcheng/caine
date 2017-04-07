@@ -1,6 +1,5 @@
 package com.caine.ui;
 
-import com.caine.plugin.PluginManager;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import javafx.fxml.FXMLLoader;
