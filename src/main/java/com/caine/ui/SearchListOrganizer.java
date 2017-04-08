@@ -82,16 +82,8 @@ public class SearchListOrganizer {
 
     private void appendQueryResultItem(QueryResult result) {
 
-        long priority = historyLookupTable.getLastAccessDate(result.getHandleUri());
-
-        if (priority > 0) {
-            observableResultList.add(0, "[" + result.getDisplayText() + "]" );
-            queryResultList.add(0, result);
-
-        } else {
-            observableResultList.add(result.getDisplayText());
-            queryResultList.add(result);
-        }
+        observableResultList.add(result.getDisplayText());
+        queryResultList.add(result);
     }
 
     public QueryResult getCurrentQueryResult() {
