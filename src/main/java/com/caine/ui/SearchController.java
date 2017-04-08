@@ -11,7 +11,6 @@ import com.tulskiy.keymaster.common.Provider;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Scene;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -19,7 +18,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.stage.Stage;
+import javafx.scene.layout.VBox;
+import javafx.stage.*;
+import javafx.stage.Window;
 import lombok.Getter;
 
 import javax.swing.*;
@@ -39,6 +40,9 @@ public class SearchController implements Initializable {
 
     private static final int MINIMUM_QUERY_STRING_LENGTH = 3;
 
+    private final double WINDOW_WIDTH_TO_DESKTOP = 0.6;
+    private final double WINDOW_HEIGHT_TO_DESKTOP = 0.8;
+
     @FXML
     public TextField inputTextField;
 
@@ -56,12 +60,14 @@ public class SearchController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         HBox.setHgrow(inputTextField, Priority.ALWAYS);
+        HBox.setHgrow(listView, Priority.ALWAYS);
+        VBox.setVgrow(listView, Priority.ALWAYS);
+
         registerHotKey();
     }
 
     public void setStage(Stage stage) {
         this.stage = stage;
-        Scene scene = SearchController.this.stage.getScene();
     }
 
     @Inject
@@ -145,11 +151,33 @@ public class SearchController implements Initializable {
         }
     }
 
+    public void setWindowInitialHeightPosition() {
+        Window searchWindow = listView.getParent().getScene().getWindow();
+
+        double initialHeight = inputTextField.getHeight();
+        searchWindow.setHeight(initialHeight);
+
+        double maximumHeight = Screen.getPrimary().getVisualBounds().getHeight();
+        searchWindow.setY(maximumHeight * (1-WINDOW_HEIGHT_TO_DESKTOP)/3);
+
+        String styles = getClass().getResource("/SearchWindowStyles.css").toExternalForm();
+        stage.getScene().getStylesheets().add(styles);
+    }
+
+    public void setWindowWidthPosition() {
+        double initialWidth = Screen.getPrimary().getVisualBounds().getWidth();
+        Window searchWindow = listView.getParent().getScene().getWindow();
+        searchWindow.setWidth(initialWidth * WINDOW_WIDTH_TO_DESKTOP);
+        searchWindow.setX(initialWidth * (1-WINDOW_WIDTH_TO_DESKTOP)/2);
+    }
+
     private void clearHideUI() {
         inputTextField.setText("");
         searchListOrganizer.updateQueryString("");
+        setWindowInitialHeightPosition();
         stage.hide();
     }
+
 
     private void registerHotKey() {
         // It makes runLater works.
@@ -205,7 +233,6 @@ public class SearchController implements Initializable {
             stage.show();
             windowStage.show();
             stage.requestFocus();
-
         }
 
         private void activateWindowInOwnThread() {

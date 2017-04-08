@@ -51,6 +51,7 @@ public class SearchListOrganizer {
 
     public void appendQueryResult(String queryString, QueryResultGenerator results) {
 
+        resultLiveView.getParent().getScene().getWindow().setHeight(500);
         if(! queryString.equals(currentQueryString)) {
             updateQueryString(queryString);
         }
