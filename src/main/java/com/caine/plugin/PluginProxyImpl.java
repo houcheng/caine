@@ -1,35 +1,47 @@
 package com.caine.plugin;
 
+import com.caine.core.QueryResultGenerator;
 import com.caine.ui.SearchController;
+import org.jruby.RubyArray;
 
 import static java.lang.Thread.sleep;
 
 /**
- * Abstract thread based plugin implementation.
+ * A thread based plugin proxy implementation.
  */
-public abstract class AbstractPluginImpl implements Runnable, Plugin {
+public class PluginProxyImpl implements Runnable, PluginProxy {
     private static final long QUERY_INPUT_DELAY_IN_MS = 100;
 
     protected final SearchController searchController;
 
     private String queryString;
     private boolean queryUpdate;
+    private boolean cancelQueryFlag;
 
     private Object synchronizeObject = new Object();
 
-    public AbstractPluginImpl(SearchController searchController) {
+    private Plugin plugin;
+
+    public PluginProxyImpl(SearchController searchController, Plugin plugin) {
         this.searchController = searchController;
+        this.plugin = plugin;
     }
 
     @Override
     public synchronized void updateQuery(String queryString) {
         this.queryString = queryString;
         queryUpdate = true;
+        cancelQueryFlag = false;
         synchronized (synchronizeObject) {
             synchronizeObject.notify();
         }
     }
 
+    @Override
+    public synchronized void cancelQuery() {
+        queryUpdate = false;
+        cancelQueryFlag = true;
+    }
 
     public void run() {
         while(true) {
@@ -40,21 +52,31 @@ public abstract class AbstractPluginImpl implements Runnable, Plugin {
             delayForInput();
 
             String query = getQueryString();
-            queryPluginImpl(query);
+            queryPlugin(query);
         }
     }
 
-    private void queryPluginImpl(String query) {
+    private void queryPlugin(String query) {
         int pageNumber = 0;
         do {
-            pollQueryResult(query, pageNumber ++);
-        } while (hasMoreQueryResult());
+            queryPluginByPage(query, pageNumber);
+
+            if (cancelQueryFlag) {
+                cancelQueryFlag = false;
+                break;
+            }
+        } while (plugin.hasMorePage(pageNumber ++));
     }
 
-    protected abstract void pollQueryResult(String query, int pageNumber);
-    protected abstract boolean hasMoreQueryResult();
+    private void queryPluginByPage(String query, int pageNumber) {
+        if (queryString.length() == 0) {
+            return;
+        }
 
-    public abstract void cancelQuery();
+       Object[] resultEntries = plugin.queryByPage(queryString, pageNumber);
+       QueryResultGenerator queryResults = new RubyQueryResultGenerator(resultEntries);
+       searchController.appendSearchResult(queryString, queryResults);
+    }
 
     // TODO: delay until no input for certain time
     private void delayForInput() {

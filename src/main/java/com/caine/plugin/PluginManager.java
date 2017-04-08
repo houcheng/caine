@@ -1,19 +1,21 @@
 package com.caine.plugin;
 
-import com.caine.ui.FileSearchPlugin;
+import com.caine.pluginProxy.pluginstore.FileSearchPlugin;
 import com.caine.ui.SearchController;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Manages plugins based on configuration file.
  */
 @Singleton
 public class PluginManager {
-    private final List<Plugin> pluginList = new LinkedList();
+
+    private final Map<String, PluginProxy> pluginMap = new HashMap<>();
     private final SearchController searchController;
 
     @Inject
@@ -24,15 +26,23 @@ public class PluginManager {
         tryToLoadAllPlugins();
     }
 
+    public PluginProxy getPluginByName() {
+        return null;
+    }
+
+    public List<PluginProxy> getAllPlugins() {
+        return null;
+    }
+
     public void updateQuery(String query) {
-        for (Plugin plugin : pluginList) {
-            plugin.updateQuery(query);
+        for (PluginProxy pluginProxy : pluginMap.values()) {
+            pluginProxy.updateQuery(query);
         }
     }
 
     private void tryToLoadAllPlugins() {
         try {
-            loadAllPlugins();
+            registerAllPlugins();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {
@@ -42,16 +52,22 @@ public class PluginManager {
 
     // TODO: load only specified plugins
     // TODO: Add a history entries search plugin for accelerating search
-    private void loadAllPlugins() throws IllegalAccessException, InstantiationException {
-        pluginList.add(loadRubyPlugin(FileSearchPlugin.class));
+    private void registerAllPlugins() throws IllegalAccessException, InstantiationException {
+
+        registerPlugin(FileSearchPlugin.class);
     }
 
+    private void registerPlugin(Class rubyPluginClass) throws IllegalAccessException, InstantiationException {
 
-    private RubyPluginImpl loadRubyPlugin(Class rubyPluginClass) throws IllegalAccessException, InstantiationException {
+        Plugin plugin = (Plugin) rubyPluginClass.newInstance();
+        PluginProxy proxyPlugin  = loadPluginAndProxy(plugin);
+        pluginMap.put(plugin.getName(), proxyPlugin);
+    }
 
-        RubyPluginImpl targetPlugin = new RubyPluginImpl(searchController, rubyPluginClass);
-        new Thread(targetPlugin).start();
+    private PluginProxy loadPluginAndProxy(Plugin plugin) {
 
-        return targetPlugin;
+        PluginProxy proxyPlugin = new PluginProxyImpl(searchController, plugin);
+        new Thread(proxyPlugin).start();
+        return proxyPlugin;
     }
 }

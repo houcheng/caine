@@ -1,10 +1,17 @@
 require 'yaml'
 require 'java'
+
 # require 'mash'
 
-java_package 'com.caine.ui'
+java_package 'com.caine.pluginProxy.pluginstore'
+
+java_import 'java.util.List'
+java_import 'com.caine.plugin.Plugin'
 
 class FileSearchPlugin
+
+  java_implements Plugin
+
   SEARCH_ITEMS_LIMIT = 100
   PLUGIN_CONFIG = "#{ENV['HOME']}/.config/caine/FileSearchPlugin.yaml"
 
@@ -23,8 +30,13 @@ class FileSearchPlugin
     end
   end
 
-  # search result format: list of [ icon_uri, display_text, file_url]
-  def search(input_query, page_number)
+  java_signature 'String getName()'
+  def getName()
+    return 'FileSearch'
+  end
+
+  java_signature 'Object[] queryByPage(String queryString, int pageNumber)'
+  def queryByPage(input_query, page_number)
     t = Time.now
     keywords = input_query.downcase.split.sort_by { |x| x.length }.reverse
 
@@ -35,26 +47,13 @@ class FileSearchPlugin
 
     p Time.now - t
 
-    return paths.map {|path| [ '', path.split('/').last, path] }
+    # search result format: list of [ icon_uri, display_text, file_url]
+    return_ruby_array = paths.map {|path| [ '', path.split('/').last, path].to_java(:String) }
+    return return_ruby_array.to_java
   end
 
-  def hasMoreSearchResult()
+  java_signature 'boolean hasMorePage(int pageNumber)'
+  def hasMorePage(page_number)
     return false
   end
 end
-
-=begin
-plugin = FileSearchPlugin.new
-p 'plugin created'
-
-
-def do_test(plugin, input_query)
-  t = Time.now
-  p plugin.search(input_query).size
-  p Time.now - t
-end
-
-do_test(plugin, 'aaa')
-do_test(plugin, 'gradle')
-=end
-

@@ -39,7 +39,6 @@ import static java.lang.Integer.min;
  * results onto SearchListOrganizer
  */
 public class SearchController implements Initializable {
-    private static final int MAX_VIEWABLE_ITEM_NUMBER = 15; // should removed it
     private static final int MINIMUM_QUERY_STRING_LENGTH = 3;
 
     private final double WINDOW_WIDTH_TO_DESKTOP = 0.6;

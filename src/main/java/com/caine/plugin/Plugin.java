@@ -2,7 +2,7 @@ package com.caine.plugin;
 
 public interface Plugin {
 
-    void updateQuery(String queryString);
-
-    // TODO: Add cancelQuery()
+    String getName();
+    Object[] queryByPage(String queryString, int pageNumber);
+    boolean hasMorePage(int PageNumber);
 }

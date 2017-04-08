@@ -9,8 +9,8 @@ import lombok.Getter;
 @Getter
 @Builder
 public class QueryResult {
+
     private String displayIcon;
     private String displayText;
     private String handleUri;
-
 }
