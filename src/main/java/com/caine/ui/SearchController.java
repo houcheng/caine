@@ -5,6 +5,8 @@ import com.caine.core.QueryResultGenerator;
 import com.caine.exception.WindowNotFoundException;
 import com.caine.plugin.PluginManager;
 import com.google.inject.Inject;
+import com.sun.javafx.scene.control.skin.ListViewSkin;
+import com.sun.javafx.scene.control.skin.VirtualFlow;
 import com.tulskiy.keymaster.common.HotKey;
 import com.tulskiy.keymaster.common.HotKeyListener;
 import com.tulskiy.keymaster.common.Provider;
@@ -28,7 +30,6 @@ import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
-import java.util.Observable;
 import java.util.ResourceBundle;
 
 import static com.caine.ui.MainApplication.APPLICATION_WINDOW_NAME;
@@ -57,6 +58,7 @@ public class SearchController implements Initializable {
     private SearchListOrganizer searchListOrganizer;
 
     private String queryString;
+    private int listViewSize;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -96,6 +98,14 @@ public class SearchController implements Initializable {
             searchListOrganizer.changeListSelectedItem(1);
             keyEvent.consume();
 
+        } else if(keyEvent.getCode() == KeyCode.PAGE_DOWN) {
+            searchListOrganizer.changeListSelectedItem(listViewSize);
+            keyEvent.consume();
+
+        } else if(keyEvent.getCode() == KeyCode.PAGE_UP) {
+            searchListOrganizer.changeListSelectedItem(-listViewSize);
+            keyEvent.consume();
+
         } else if(keyEvent.getCode() == KeyCode.ENTER) {
             openQueryResult(searchListOrganizer.getCurrentQueryResult());
             clearHideUI();
@@ -107,13 +117,24 @@ public class SearchController implements Initializable {
         searchListOrganizer.updateCurrentIndexByListSelection();
     }
 
+    int getListViewIndex() {
+        ListViewSkin<?> skin = (ListViewSkin<?>) listView.getSkin();
+        VirtualFlow<?> vf = (VirtualFlow<?>) skin.getChildren().get(0);
+        System.out.printf("The index is:%d\n", vf.getFirstVisibleCell().getIndex());
+        return vf.getFirstVisibleCell().getIndex();
+    }
+
+    int getListViewSize() {
+        return listViewSize;
+    }
+
     public void updateWindowSizeByItemNumber(int itemCount) {
 
         double lineHeight = inputTextField.getHeight() - 2;
         double maxHeight = Screen.getPrimary().getVisualBounds().getHeight() * WINDOW_HEIGHT_TO_DESKTOP;
-        int listViewLineNumber = min((int) (maxHeight/lineHeight) - 1 , itemCount);
+        listViewSize = min((int) (maxHeight/lineHeight) - 1 , itemCount);
 
-        stage.getScene().getWindow().setHeight(lineHeight * listViewLineNumber + inputTextField.getHeight());
+        stage.getScene().getWindow().setHeight(lineHeight * listViewSize + inputTextField.getHeight());
     }
 
     public void setWindowInitialHeightPosition() {

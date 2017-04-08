@@ -12,9 +12,6 @@ import javafx.scene.control.ListView;
 import java.util.LinkedList;
 import java.util.List;
 
-import static java.lang.Integer.max;
-import static java.lang.Integer.min;
-
 /**
  * Handles content and UI status update of search list view.
  */
@@ -23,7 +20,7 @@ public class SearchListOrganizer {
 
     private final HistoryLookupTable historyLookupTable;
     private final SearchController searchController;
-    private final ListView resultLiveView;
+    private final ListView listView;
 
     private ObservableList<String> observableResultList = FXCollections.observableArrayList();
     private List<QueryResult> queryResultList = new LinkedList<>();
@@ -34,18 +31,31 @@ public class SearchListOrganizer {
     @Inject
     public SearchListOrganizer(HistoryLookupTable historyLookupTable, SearchController searchController) {
         this.historyLookupTable = historyLookupTable;
-        this.resultLiveView = searchController.getListView();
+        this.listView = searchController.getListView();
         this.searchController = searchController;
     }
 
     public void updateCurrentIndexByListSelection() {
-        currentIndex = resultLiveView.getSelectionModel().getSelectedIndex();
+        currentIndex = listView.getSelectionModel().getSelectedIndex();
     }
 
     public void changeListSelectedItem(int offset) {
+        int newIndex = calculateNewIndexByOffset(offset);
+        updateListViewByIndex(newIndex);
+    }
 
-        updateCurrentIndex(currentIndex + offset);
-        updateListSelectionByCurrentIndex();
+    private int calculateNewIndexByOffset(int offset) {
+
+        int newIndex = currentIndex + offset;
+
+        if (newIndex < 0) {
+            return 0;
+        }
+        if (newIndex > listView.getItems().size()) {
+            return listView.getItems().size() - 1;
+        }
+
+        return newIndex;
     }
 
     public void updateQueryString(String queryString) {
@@ -69,22 +79,27 @@ public class SearchListOrganizer {
         searchController.updateWindowSizeByItemNumber(itemCount);
     }
 
-    private void updateListSelectionByCurrentIndex() {
-        resultLiveView.getSelectionModel().select(currentIndex);
-    }
-
-    private void updateCurrentIndex(int newIndex) {
-        if (newIndex < 0 || newIndex > resultLiveView.getItems().size()) {
+    private void updateListViewByIndex(int newIndex) {
+        if (newIndex == currentIndex) {
             return;
         }
         currentIndex = newIndex;
+
+        listView.getSelectionModel().select(currentIndex);
+
+        if(currentIndex < searchController.getListViewIndex()) {
+            listView.scrollTo(currentIndex);
+        } else if( currentIndex > (searchController.getListViewIndex() + searchController.getListViewSize())) {
+            listView.scrollTo(currentIndex - searchController.getListViewSize());
+        }
+
     }
 
     private void clearResultList() {
         currentIndex = -1;
         observableResultList.clear();
         queryResultList.clear();
-        resultLiveView.setItems(observableResultList);
+        listView.setItems(observableResultList);
     }
 
     private void appendQueryResultItem(QueryResult result) {

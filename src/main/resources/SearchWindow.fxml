@@ -12,7 +12,7 @@
             <Font size="32.0" />
          </font>
       </TextField>
-      <ListView fx:id="listView"  focusTraversable="false" onKeyPressed="#handleKeyPressed" onMouseClicked="#handleMouseClickedOnList">
+      <ListView fx:id="listView" focusTraversable="false" onKeyPressed="#handleKeyPressed" onMouseClicked="#handleMouseClickedOnList">
       </ListView>
    </children>
 </VBox>

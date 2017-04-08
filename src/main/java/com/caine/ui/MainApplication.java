@@ -25,6 +25,7 @@ public class MainApplication extends Application {
     }
 
     private void displayPrimaryStage(Stage primaryStage) {
+
         primaryStage.initStyle(StageStyle.UNDECORATED);
         primaryStage.setScene(new Scene(root));
         primaryStage.setTitle(APPLICATION_WINDOW_NAME);
