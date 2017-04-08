@@ -31,13 +31,14 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 import static com.caine.ui.MainApplication.APPLICATION_WINDOW_NAME;
+import static java.lang.Integer.min;
 
 /**
  * A JavaFX UI controller to handle UI events from SearchWindow.xml and update query
  * results onto SearchListOrganizer
  */
 public class SearchController implements Initializable {
-
+    private static final int MAX_VIEWABLE_ITEM_NUMBER = 15; // should removed it
     private static final int MINIMUM_QUERY_STRING_LENGTH = 3;
 
     private final double WINDOW_WIDTH_TO_DESKTOP = 0.6;
@@ -86,14 +87,14 @@ public class SearchController implements Initializable {
 
     public void handleKeyPressed(KeyEvent keyEvent) {
 
-        System.out.println(keyEvent.toString());
-
         if(keyEvent.getCode() == KeyCode.UP) {
             searchListOrganizer.changeListSelectedItem(-1);
             keyEvent.consume();
+
         } else if(keyEvent.getCode() == KeyCode.DOWN) {
             searchListOrganizer.changeListSelectedItem(1);
             keyEvent.consume();
+
         } else if(keyEvent.getCode() == KeyCode.ENTER) {
             openQueryResult(searchListOrganizer.getCurrentQueryResult());
             clearHideUI();
@@ -105,7 +106,14 @@ public class SearchController implements Initializable {
         searchListOrganizer.updateCurrentIndexByListSelection();
     }
 
+    public void updateWindowSizeByItemNumber(int itemCount) {
+
+        int viewableItemNumber = min(MAX_VIEWABLE_ITEM_NUMBER, itemCount);
+        stage.getScene().getWindow().setHeight(viewableItemNumber * 50 + 80);
+    }
+
     private void openQueryResult(QueryResult selectedResult) {
+
         if (selectedResult == null) {
             return;
         }
@@ -165,7 +173,9 @@ public class SearchController implements Initializable {
     }
 
     public void setWindowWidthPosition() {
+
         double initialWidth = Screen.getPrimary().getVisualBounds().getWidth();
+
         Window searchWindow = listView.getParent().getScene().getWindow();
         searchWindow.setWidth(initialWidth * WINDOW_WIDTH_TO_DESKTOP);
         searchWindow.setX(initialWidth * (1-WINDOW_WIDTH_TO_DESKTOP)/2);
@@ -232,7 +242,9 @@ public class SearchController implements Initializable {
             Stage windowStage = (Stage) stage.getScene().getWindow();
             stage.show();
             windowStage.show();
+
             stage.requestFocus();
+            inputTextField.requestFocus();
         }
 
         private void activateWindowInOwnThread() {

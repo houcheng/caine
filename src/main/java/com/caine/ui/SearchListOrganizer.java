@@ -12,14 +12,18 @@ import javafx.scene.control.ListView;
 import java.util.LinkedList;
 import java.util.List;
 
+import static java.lang.Integer.max;
+import static java.lang.Integer.min;
+
 /**
  * Handles content and UI status update of search list view.
  */
 @Singleton
 public class SearchListOrganizer {
 
-    private final ListView resultLiveView;
     private final HistoryLookupTable historyLookupTable;
+    private final SearchController searchController;
+    private final ListView resultLiveView;
 
     private ObservableList<String> observableResultList = FXCollections.observableArrayList();
     private List<QueryResult> queryResultList = new LinkedList<>();
@@ -28,9 +32,10 @@ public class SearchListOrganizer {
     private int currentIndex = -1;
 
     @Inject
-    public SearchListOrganizer(ListView listView, HistoryLookupTable historyLookupTable) {
-        this.resultLiveView = listView;
+    public SearchListOrganizer(HistoryLookupTable historyLookupTable, SearchController searchController) {
         this.historyLookupTable = historyLookupTable;
+        this.resultLiveView = searchController.getListView();
+        this.searchController = searchController;
     }
 
     public void updateCurrentIndexByListSelection() {
@@ -51,18 +56,20 @@ public class SearchListOrganizer {
 
     public void appendQueryResult(String queryString, QueryResultGenerator results) {
 
-        resultLiveView.getParent().getScene().getWindow().setHeight(500);
         if(! queryString.equals(currentQueryString)) {
             updateQueryString(queryString);
         }
 
+        int itemCount = 0;
         for (QueryResult result: results.getResults()) {
             appendQueryResultItem(result);
+            itemCount ++;
         }
+
+        searchController.updateWindowSizeByItemNumber(itemCount);
     }
 
     private void updateListSelectionByCurrentIndex() {
-        resultLiveView.getFocusModel().focus(currentIndex);
         resultLiveView.getSelectionModel().select(currentIndex);
     }
 

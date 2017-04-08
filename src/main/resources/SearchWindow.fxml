@@ -2,8 +2,8 @@
 
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.text.Font?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
 <VBox fx:id="SearchWindow" alignment="center" prefWidth="731.0" xmlns="http://javafx.com/javafx/8.0.102-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.caine.ui.SearchController">
    <children>
@@ -12,7 +12,7 @@
             <Font size="32.0" />
          </font>
       </TextField>
-      <ListView fx:id="listView" onKeyPressed="#handleKeyPressed" onMouseClicked="#handleMouseClickedOnList">
+      <ListView fx:id="listView" focusTraversable="false" onKeyPressed="#handleKeyPressed" onMouseClicked="#handleMouseClickedOnList">
       </ListView>
    </children>
 </VBox>
