@@ -28,6 +28,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Observable;
 import java.util.ResourceBundle;
 
 import static com.caine.ui.MainApplication.APPLICATION_WINDOW_NAME;
@@ -42,7 +43,7 @@ public class SearchController implements Initializable {
     private static final int MINIMUM_QUERY_STRING_LENGTH = 3;
 
     private final double WINDOW_WIDTH_TO_DESKTOP = 0.6;
-    private final double WINDOW_HEIGHT_TO_DESKTOP = 0.8;
+    private final double WINDOW_HEIGHT_TO_DESKTOP = 0.9;
 
     @FXML
     public TextField inputTextField;
@@ -80,6 +81,7 @@ public class SearchController implements Initializable {
     public void handleKeyTypedOnTextField(KeyEvent keyEvent) {
 
         this.queryString = inputTextField.getText();
+        System.out.println("The listview height is:" + this.listView.getHeight());
         if (this.queryString.length() >= MINIMUM_QUERY_STRING_LENGTH) {
             queryClient.updateQuery(inputTextField.getText());
         }
@@ -108,8 +110,33 @@ public class SearchController implements Initializable {
 
     public void updateWindowSizeByItemNumber(int itemCount) {
 
-        int viewableItemNumber = min(MAX_VIEWABLE_ITEM_NUMBER, itemCount);
-        stage.getScene().getWindow().setHeight(viewableItemNumber * 50 + 80);
+        double lineHeight = inputTextField.getHeight() - 2;
+        double maxHeight = Screen.getPrimary().getVisualBounds().getHeight() * WINDOW_HEIGHT_TO_DESKTOP;
+        int listViewLineNumber = min((int) (maxHeight/lineHeight) - 1 , itemCount);
+
+        stage.getScene().getWindow().setHeight(lineHeight * listViewLineNumber + inputTextField.getHeight());
+    }
+
+    public void setWindowInitialHeightPosition() {
+        Window searchWindow = listView.getParent().getScene().getWindow();
+
+        double initialHeight = inputTextField.getHeight();
+        searchWindow.setHeight(initialHeight);
+
+        double desktopHeight = Screen.getPrimary().getVisualBounds().getHeight();
+        searchWindow.setY(desktopHeight * (1.0 - WINDOW_HEIGHT_TO_DESKTOP) / 2);
+
+        String styles = getClass().getResource("/SearchWindowStyles.css").toExternalForm();
+        stage.getScene().getStylesheets().add(styles);
+    }
+
+    public void setWindowWidthPosition() {
+
+        double initialWidth = Screen.getPrimary().getVisualBounds().getWidth();
+
+        Window searchWindow = listView.getParent().getScene().getWindow();
+        searchWindow.setWidth(initialWidth * WINDOW_WIDTH_TO_DESKTOP);
+        searchWindow.setX(initialWidth * (1-WINDOW_WIDTH_TO_DESKTOP)/2);
     }
 
     private void openQueryResult(QueryResult selectedResult) {
@@ -157,28 +184,6 @@ public class SearchController implements Initializable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public void setWindowInitialHeightPosition() {
-        Window searchWindow = listView.getParent().getScene().getWindow();
-
-        double initialHeight = inputTextField.getHeight();
-        searchWindow.setHeight(initialHeight);
-
-        double maximumHeight = Screen.getPrimary().getVisualBounds().getHeight();
-        searchWindow.setY(maximumHeight * (1-WINDOW_HEIGHT_TO_DESKTOP)/3);
-
-        String styles = getClass().getResource("/SearchWindowStyles.css").toExternalForm();
-        stage.getScene().getStylesheets().add(styles);
-    }
-
-    public void setWindowWidthPosition() {
-
-        double initialWidth = Screen.getPrimary().getVisualBounds().getWidth();
-
-        Window searchWindow = listView.getParent().getScene().getWindow();
-        searchWindow.setWidth(initialWidth * WINDOW_WIDTH_TO_DESKTOP);
-        searchWindow.setX(initialWidth * (1-WINDOW_WIDTH_TO_DESKTOP)/2);
     }
 
     private void clearHideUI() {

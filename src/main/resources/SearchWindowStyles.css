@@ -1,7 +1,7 @@
 .list-view .list-cell:even {
--fx-font-size: 24px
+-fx-font-size: 32.0
 }
 
 .list-view .list-cell:odd {
--fx-font-size: 24px
+-fx-font-size: 32.0
 }
