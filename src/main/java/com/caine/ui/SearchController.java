@@ -58,7 +58,6 @@ public class SearchController implements Initializable {
     private SearchListOrganizer searchListOrganizer;
 
     private String queryString;
-    private int listViewSize;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -91,19 +90,19 @@ public class SearchController implements Initializable {
     public void handleKeyPressed(KeyEvent keyEvent) {
 
         if(keyEvent.getCode() == KeyCode.UP) {
-            searchListOrganizer.changeListSelectedItem(-1);
+            searchListOrganizer.moveSelectedItem(-1);
             keyEvent.consume();
 
         } else if(keyEvent.getCode() == KeyCode.DOWN) {
-            searchListOrganizer.changeListSelectedItem(1);
+            searchListOrganizer.moveSelectedItem(1);
             keyEvent.consume();
 
         } else if(keyEvent.getCode() == KeyCode.PAGE_DOWN) {
-            searchListOrganizer.changeListSelectedItem(listViewSize);
+            searchListOrganizer.moveSelectedItemByPage(1);
             keyEvent.consume();
 
         } else if(keyEvent.getCode() == KeyCode.PAGE_UP) {
-            searchListOrganizer.changeListSelectedItem(-listViewSize);
+            searchListOrganizer.moveSelectedItemByPage(-1);
             keyEvent.consume();
 
         } else if(keyEvent.getCode() == KeyCode.ENTER) {
@@ -117,24 +116,14 @@ public class SearchController implements Initializable {
         searchListOrganizer.updateCurrentIndexByListSelection();
     }
 
-    int getListViewIndex() {
-        ListViewSkin<?> skin = (ListViewSkin<?>) listView.getSkin();
-        VirtualFlow<?> vf = (VirtualFlow<?>) skin.getChildren().get(0);
-        System.out.printf("The index is:%d\n", vf.getFirstVisibleCell().getIndex());
-        return vf.getFirstVisibleCell().getIndex();
-    }
-
-    int getListViewSize() {
-        return listViewSize;
-    }
-
     public void updateWindowSizeByItemNumber(int itemCount) {
 
         double lineHeight = inputTextField.getHeight() - 2;
         double maxHeight = Screen.getPrimary().getVisualBounds().getHeight() * WINDOW_HEIGHT_TO_DESKTOP;
-        listViewSize = min((int) (maxHeight/lineHeight) - 1 , itemCount);
+        int listViewSize = min((int) (maxHeight/lineHeight) - 1 , itemCount);
 
         stage.getScene().getWindow().setHeight(lineHeight * listViewSize + inputTextField.getHeight());
+        searchListOrganizer.updateListViewSize(listViewSize);
     }
 
     public void setWindowInitialHeightPosition() {

@@ -5,6 +5,8 @@ import com.caine.core.QueryResult;
 import com.caine.core.QueryResultGenerator;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.sun.javafx.scene.control.skin.ListViewSkin;
+import com.sun.javafx.scene.control.skin.VirtualFlow;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
@@ -26,7 +28,9 @@ public class SearchListOrganizer {
     private List<QueryResult> queryResultList = new LinkedList<>();
 
     private String currentQueryString;
+
     private int currentIndex = -1;
+    private int listViewSize;
 
     @Inject
     public SearchListOrganizer(HistoryLookupTable historyLookupTable, SearchController searchController) {
@@ -39,9 +43,17 @@ public class SearchListOrganizer {
         currentIndex = listView.getSelectionModel().getSelectedIndex();
     }
 
-    public void changeListSelectedItem(int offset) {
+    public void moveSelectedItemByPage(int pageOffset) {
+        moveSelectedItem(pageOffset * listViewSize);
+    }
+
+    public void moveSelectedItem(int offset) {
         int newIndex = calculateNewIndexByOffset(offset);
         updateListViewByIndex(newIndex);
+    }
+
+    public void updateListViewSize(int size) {
+        this.listViewSize = size;
     }
 
     private int calculateNewIndexByOffset(int offset) {
@@ -87,10 +99,10 @@ public class SearchListOrganizer {
 
         listView.getSelectionModel().select(currentIndex);
 
-        if(currentIndex < searchController.getListViewIndex()) {
+        if(currentIndex < getListViewIndex()) {
             listView.scrollTo(currentIndex);
-        } else if( currentIndex > (searchController.getListViewIndex() + searchController.getListViewSize())) {
-            listView.scrollTo(currentIndex - searchController.getListViewSize());
+        } else if( currentIndex > (getListViewIndex() + listViewSize)) {
+            listView.scrollTo(currentIndex - listViewSize);
         }
 
     }
@@ -106,6 +118,12 @@ public class SearchListOrganizer {
 
         observableResultList.add(result.getDisplayText());
         queryResultList.add(result);
+    }
+
+    int getListViewIndex() {
+        ListViewSkin<?> skin = (ListViewSkin<?>) listView.getSkin();
+        VirtualFlow<?> vf = (VirtualFlow<?>) skin.getChildren().get(0);
+        return vf.getFirstVisibleCell().getIndex();
     }
 
     public QueryResult getCurrentQueryResult() {
