@@ -16,11 +16,25 @@ class FileSearchPlugin
   PLUGIN_CONFIG = "#{ENV['HOME']}/.config/caine/FileSearchPlugin.yaml"
 
   def initialize()
+
+  end
+
+  java_signature 'void load(String name)'
+  def load(instance_name)
+    @instance_name = instance_name
+    dirs = load_config_dirs()
+    load_filedb(dirs)
+  end
+
+  def load_config_dirs()
+    # TODO: load config by instance_name
     @config = YAML.load_file(PLUGIN_CONFIG)
 
     dirs = @config["dirs"].map { |s| s + '/**/*' }
                           .map { |s| s.gsub('~', "#{ENV['HOME']}")}
+  end
 
+  def load_filedb(dirs)
     @filedb = {}
     dirs.each do |dir|
       Dir[dir].each do |path|
@@ -28,11 +42,6 @@ class FileSearchPlugin
         @filedb[path] = keyword
       end
     end
-  end
-
-  java_signature 'String getName()'
-  def getName()
-    return 'FileSearch'
   end
 
   java_signature 'Object[] queryByPage(String queryString, int pageNumber)'

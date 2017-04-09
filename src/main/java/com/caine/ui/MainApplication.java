@@ -41,10 +41,10 @@ public class MainApplication extends Application {
         injector = Guice.createInjector(new MainModule());
 
         root = injector.getInstance(Parent.class);
-        searchController = injector.getInstance(SearchController.class);
-
-        injector.getInstance(PluginManager.class);
         injector.getInstance(AppConfiguration.class);
+
+        searchController = injector.getInstance(SearchController.class);
+        injector.getInstance(PluginManager.class);
     }
 
     private void injectGuiceDependecies(Stage primaryStage) {

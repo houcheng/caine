@@ -39,6 +39,11 @@ public class AppConfiguration {
         return (List<String>) hotkeys.get(hotKey);
     }
 
+    public String getPluginType(String instanceName) {
+        Map <String, Object> hotkeys = (Map<String, Object>) yamlConfig.get(instanceName);
+        return (String) hotkeys.get("type");
+    }
+
     private Map<String, Object> loadYamlConfigFromFile(File yamlFile) throws IOException {
         Yaml yaml = new Yaml();
         return (Map<String, Object>) yaml.load(Files.asByteSource(yamlFile).openStream());
