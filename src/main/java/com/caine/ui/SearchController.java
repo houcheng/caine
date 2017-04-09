@@ -3,7 +3,6 @@ package com.caine.ui;
 import com.caine.config.AppConfiguration;
 import com.caine.core.QueryResult;
 import com.caine.core.QueryResultGenerator;
-import com.caine.exception.WindowNotFoundException;
 import com.caine.plugin.PluginManager;
 import com.google.inject.Inject;
 import com.tulskiy.keymaster.common.HotKey;
@@ -31,7 +30,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import static com.caine.ui.MainApplication.APPLICATION_WINDOW_NAME;
 import static java.lang.Integer.min;
 
 /**
@@ -66,10 +64,6 @@ public class SearchController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
-    }
-
-    public void setStage(Stage stage) {
-        this.stage = stage;
     }
 
     public void initializeUI(Stage stage) {
@@ -135,6 +129,18 @@ public class SearchController implements Initializable {
 
         stage.getScene().getWindow().setHeight(lineHeight * listViewSize + inputTextField.getHeight());
         searchListOrganizer.updateListViewSize(listViewSize);
+    }
+
+    void showWindowOnHotKey(KeyStroke hotkey) {
+
+        stage.show();
+        Stage windowStage = (Stage) stage.getScene().getWindow();
+        windowStage.show();
+
+        stage.requestFocus();
+        inputTextField.requestFocus();
+
+        this.hotKey = hotkey;
     }
 
     private void setWindowInitialHeightPosition() {
@@ -266,74 +272,10 @@ public class SearchController implements Initializable {
         return new HotKeyListener() {
             @Override
             public void onHotKey(HotKey hotKey) {
-                Runnable thread = new ActivateWindowThread(hotKey.keyStroke);
+                Runnable thread = new HotKeyActivateWindowTask(SearchController.this, hotKey.keyStroke);
                 Platform.runLater(thread);
             }
         };
     }
 
-    class ActivateWindowThread implements Runnable {
-
-        private final KeyStroke hotKey;
-
-        public ActivateWindowThread(KeyStroke hotKey) {
-            this.hotKey = hotKey;
-        }
-
-        @Override
-        public void run() {
-            showWindow();
-            activateWindowInOwnThread();
-        }
-
-        private void showWindow() {
-            Stage windowStage = (Stage) stage.getScene().getWindow();
-            stage.show();
-            windowStage.show();
-
-            SearchController.this.hotKey = hotKey;
-
-            stage.requestFocus();
-            inputTextField.requestFocus();
-        }
-
-        private void activateWindowInOwnThread() {
-            new Thread(createActivateWindowJob()).start();
-        }
-
-        private Runnable createActivateWindowJob() {
-
-            return new Runnable() {
-                private int MAX_RETRY_COUNT = 20;
-                private int ACTIVATE_WINDOW_DELAY_TIME_IN_MS = 50;
-                @Override
-                public void run() {
-
-                    int retryCount = 0;
-                    while (retryCount < MAX_RETRY_COUNT) {
-                        try {
-                            activateApplicationWindow();
-                            break;
-                        } catch (WindowNotFoundException ex) {
-                            retryCount ++;
-                            continue;
-                        }
-                    }
-                }
-
-                private void activateApplicationWindow() {
-                    waitUiThread(ACTIVATE_WINDOW_DELAY_TIME_IN_MS);
-                    (new ActivateWindowJni()).callActivateWindow(APPLICATION_WINDOW_NAME);
-                }
-            };
-        }
-
-        private void waitUiThread(int milliSecond) {
-            try {
-                Thread.sleep(milliSecond);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 }
