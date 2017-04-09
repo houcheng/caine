@@ -5,8 +5,6 @@ import com.caine.core.QueryResultGenerator;
 import com.caine.exception.WindowNotFoundException;
 import com.caine.plugin.PluginManager;
 import com.google.inject.Inject;
-import com.sun.javafx.scene.control.skin.ListViewSkin;
-import com.sun.javafx.scene.control.skin.VirtualFlow;
 import com.tulskiy.keymaster.common.HotKey;
 import com.tulskiy.keymaster.common.HotKeyListener;
 import com.tulskiy.keymaster.common.Provider;
@@ -45,6 +43,8 @@ public class SearchController implements Initializable {
     private final double WINDOW_WIDTH_TO_DESKTOP = 0.6;
     private final double WINDOW_HEIGHT_TO_DESKTOP = 0.9;
 
+    private Stage stage;
+
     @FXML
     public TextField inputTextField;
 
@@ -52,20 +52,20 @@ public class SearchController implements Initializable {
     @FXML
     public ListView<String> listView;
 
-    private Stage stage;
-
-    private PluginManager queryClient;
+    private PluginManager pluginManager;
     private SearchListOrganizer searchListOrganizer;
-
     private String queryString;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        registerHotKey();
+        initializeUIAutoGrow();
+    }
+
+    private void initializeUIAutoGrow() {
         HBox.setHgrow(inputTextField, Priority.ALWAYS);
         HBox.setHgrow(listView, Priority.ALWAYS);
         VBox.setVgrow(listView, Priority.ALWAYS);
-
-        registerHotKey();
     }
 
     public void setStage(Stage stage) {
@@ -74,16 +74,16 @@ public class SearchController implements Initializable {
 
     @Inject
     public void injectDependencyByGuice(PluginManager client, SearchListOrganizer searchListOrganizer) {
-        this.queryClient = client;
+        this.pluginManager = client;
         this.searchListOrganizer = searchListOrganizer;
     }
 
     public void handleKeyTypedOnTextField(KeyEvent keyEvent) {
 
         this.queryString = inputTextField.getText();
-        System.out.println("The listview height is:" + this.listView.getHeight());
+
         if (this.queryString.length() >= MINIMUM_QUERY_STRING_LENGTH) {
-            queryClient.updateQuery(inputTextField.getText());
+            pluginManager.updateQuery(inputTextField.getText());
         }
     }
 
@@ -114,6 +114,11 @@ public class SearchController implements Initializable {
 
     public void handleMouseClickedOnList(MouseEvent mouseEvent) {
         searchListOrganizer.updateCurrentIndexByListSelection();
+
+        if (mouseEvent.getClickCount() == 2) {
+            openQueryResult(searchListOrganizer.getCurrentQueryResult());
+            clearHideUI();
+        }
     }
 
     public void updateWindowSizeByItemNumber(int itemCount) {
@@ -189,7 +194,8 @@ public class SearchController implements Initializable {
 
     private void openFileByUtility(String utility, String path) {
         try {
-            Runtime.getRuntime().exec(utility + "  " + path);
+            String [] commandLine = { utility, path };
+            Runtime.getRuntime().exec(commandLine);
         } catch (IOException e) {
             e.printStackTrace();
         }
