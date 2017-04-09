@@ -1,5 +1,6 @@
 package com.caine.ui;
 
+import com.caine.config.AppConfiguration;
 import com.caine.plugin.PluginManager;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -20,19 +21,19 @@ public class MainApplication extends Application {
     public void start(Stage primaryStage) throws Exception{
 
         createGuiceInstances();
-        configureSearchController(primaryStage);
-        displayPrimaryStage(primaryStage);
+        injectGuiceDependecies(primaryStage);
+
+        initializePrimaryStage(primaryStage);
     }
 
-    private void displayPrimaryStage(Stage primaryStage) {
+    private void initializePrimaryStage(Stage primaryStage) {
 
         primaryStage.initStyle(StageStyle.UNDECORATED);
         primaryStage.setScene(new Scene(root));
         primaryStage.setTitle(APPLICATION_WINDOW_NAME);
-
         primaryStage.show();
-        searchController.setWindowWidthPosition();
-        searchController.setWindowInitialHeightPosition();
+
+        searchController.initializeUI(primaryStage);
     }
 
     private void createGuiceInstances() {
@@ -41,13 +42,13 @@ public class MainApplication extends Application {
 
         root = injector.getInstance(Parent.class);
         searchController = injector.getInstance(SearchController.class);
+
         injector.getInstance(PluginManager.class);
+        injector.getInstance(AppConfiguration.class);
     }
 
-    private void configureSearchController(Stage primaryStage) {
-
+    private void injectGuiceDependecies(Stage primaryStage) {
         injector.injectMembers(searchController);
-        searchController.setStage(primaryStage);
     }
 
 

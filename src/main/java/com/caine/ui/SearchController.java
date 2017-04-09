@@ -1,5 +1,6 @@
 package com.caine.ui;
 
+import com.caine.config.AppConfiguration;
 import com.caine.core.QueryResult;
 import com.caine.core.QueryResultGenerator;
 import com.caine.exception.WindowNotFoundException;
@@ -21,6 +22,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.*;
 import javafx.stage.Window;
+import jnr.ffi.annotations.In;
 import lombok.Getter;
 
 import javax.swing.*;
@@ -52,30 +54,34 @@ public class SearchController implements Initializable {
     @FXML
     public ListView<String> listView;
 
+    @Inject
+    private AppConfiguration appConfiguration;
+    @Inject
     private PluginManager pluginManager;
+    @Inject
     private SearchListOrganizer searchListOrganizer;
+
     private String queryString;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        registerHotKey();
-        initializeUIAutoGrow();
-    }
 
-    private void initializeUIAutoGrow() {
-        HBox.setHgrow(inputTextField, Priority.ALWAYS);
-        HBox.setHgrow(listView, Priority.ALWAYS);
-        VBox.setVgrow(listView, Priority.ALWAYS);
     }
 
     public void setStage(Stage stage) {
         this.stage = stage;
     }
 
-    @Inject
-    public void injectDependencyByGuice(PluginManager client, SearchListOrganizer searchListOrganizer) {
-        this.pluginManager = client;
-        this.searchListOrganizer = searchListOrganizer;
+    public void initializeUI(Stage stage) {
+
+        this.stage = stage;
+
+        enablePlatformRunLater();
+        registerHotKey();
+
+        initializeUIAutoGrow();
+        setWindowWidthPosition();
+        setWindowInitialHeightPosition();
     }
 
     public void handleKeyTypedOnTextField(KeyEvent keyEvent) {
@@ -131,7 +137,7 @@ public class SearchController implements Initializable {
         searchListOrganizer.updateListViewSize(listViewSize);
     }
 
-    public void setWindowInitialHeightPosition() {
+    private void setWindowInitialHeightPosition() {
         Window searchWindow = listView.getParent().getScene().getWindow();
 
         double initialHeight = inputTextField.getHeight();
@@ -144,13 +150,20 @@ public class SearchController implements Initializable {
         stage.getScene().getStylesheets().add(styles);
     }
 
-    public void setWindowWidthPosition() {
+    private void setWindowWidthPosition() {
 
         double initialWidth = Screen.getPrimary().getVisualBounds().getWidth();
 
         Window searchWindow = listView.getParent().getScene().getWindow();
         searchWindow.setWidth(initialWidth * WINDOW_WIDTH_TO_DESKTOP);
         searchWindow.setX(initialWidth * (1-WINDOW_WIDTH_TO_DESKTOP)/2);
+    }
+
+    private void initializeUIAutoGrow() {
+
+        HBox.setHgrow(inputTextField, Priority.ALWAYS);
+        HBox.setHgrow(listView, Priority.ALWAYS);
+        VBox.setVgrow(listView, Priority.ALWAYS);
     }
 
     private void openQueryResult(QueryResult selectedResult) {
@@ -210,13 +223,18 @@ public class SearchController implements Initializable {
 
 
     private void registerHotKey() {
-        // It makes runLater works.
-        Platform.setImplicitExit(false);
 
         Provider keyProvider = Provider.getCurrentProvider(false);
         HotKeyListener keyListener = createHotKeyListener(new ActivateWindowThread());
-        keyProvider.register(KeyStroke.getKeyStroke("F1"), keyListener);
-        keyProvider.register(KeyStroke.getKeyStroke("F2"), keyListener);
+
+        for (String hotKey : appConfiguration.getHotKeys()) {
+            keyProvider.register(KeyStroke.getKeyStroke(hotKey), keyListener);
+        }
+    }
+
+    // Configure to make platform runLater works.
+    private void enablePlatformRunLater() {
+        Platform.setImplicitExit(false);
     }
 
     private HotKeyListener createHotKeyListener(ActivateWindowThread thread) {

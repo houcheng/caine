@@ -1,0 +1,11 @@
+HotKeys:
+  'F1': [ FileSearchPlugin ]
+  'F2': [ NullPlugin ]
+  'ctrl+F1': [ FileSearchPlugin, NullPlugin ]
+
+Settings:
+  BlackTheme: true
+  fontSize: 32
+
+FileSearchPlugin:
+  scanDirectories: [ '~/Dropbox' ]

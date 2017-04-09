@@ -1,22 +1,28 @@
-clearJavaInterfaceClass() {
-    rm -f ../main/java/com/caine/plugin/Plugin.class
-}
-
-compileJavaInterface() {
+compilePluginInterface() {
     javac ../main/java/com/caine/plugin/Plugin.java
+    jar cvf pluginintf.jar  -C ../main/java com/caine/plugin/Plugin.class
+    rm ../main/java/com/caine/plugin/Plugin.class
 }
-
 
 buildPlugin() {
     rm -fr ./com/
-    jrubyc -c ../main/java/ --javac FileSearchPlugin.rb
-    jrubyc -c ../main/java/ --javac NullPlugin.rb
-    jar cvf pluginstore.jar com/caine/plugin/pluginstore/*.class
-    mv pluginstore.jar ../../libs/
+    rm -f pluginstore.jar
+    jrubyc -c pluginintf.jar --javac FileSearchPlugin.rb
+    jar cvf pluginstore.jar com/caine/plugin/pluginstore/FileSearchPlugin.class
 }
 
-clearJavaInterfaceClass
-compileJavaInterface
+addPlugin() {
+    jrubyc -c pluginintf.jar --javac $1.rb
+    jar uvf pluginstore.jar com/caine/plugin/pluginstore/$1.class
+}
+
+movePluginStoreAndCleanUp() {
+    mv pluginstore.jar ../../libs/
+    rm -fr com
+}
+
+compilePluginInterface
 
 buildPlugin
-clearJavaInterfaceClass
+addPlugin NullPlugin
+movePluginStoreAndCleanUp
