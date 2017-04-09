@@ -3,8 +3,14 @@
 .gradle/
 build/
 out/
-libs/
+
 *.iml
 *.ipr
 *.iws
+
 data/
+
+src/jni/*.o
+src/jni/*.so
+
+libs/pluginstore.jar
