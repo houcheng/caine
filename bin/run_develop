@@ -1,0 +1,1 @@
+java -Djava.library.path=./libs -cp "$HOME/.config/caine/*:build/jfx/app/project-jfx.jar"  com.caine.ui.MainApplication
