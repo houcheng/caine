@@ -5,3 +5,11 @@
 .list-view .list-cell:odd {
 -fx-font-size: 32.0
 }
+
+// Keep the prompt text appeared when input field is focused
+.text-field {
+    -fx-prompt-text-fill: derive(-fx-control-inner-background,-30%);
+}
+.text-field:focused {
+    -fx-prompt-text-fill: derive(-fx-control-inner-background,-30%);
+}

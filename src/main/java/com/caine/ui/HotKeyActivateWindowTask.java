@@ -1,5 +1,6 @@
 package com.caine.ui;
 
+import com.caine.config.AppConfiguration;
 import com.caine.exception.WindowNotFoundException;
 
 import javax.swing.*;
@@ -14,7 +15,7 @@ class HotKeyActivateWindowTask implements Runnable {
     private SearchController searchController;
     private final KeyStroke hotKey;
 
-    public HotKeyActivateWindowTask(SearchController searchController, KeyStroke hotKey) {
+    HotKeyActivateWindowTask(SearchController searchController, KeyStroke hotKey) {
         this.searchController = searchController;
         this.hotKey = hotKey;
     }

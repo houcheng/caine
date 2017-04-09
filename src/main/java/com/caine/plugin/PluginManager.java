@@ -33,6 +33,14 @@ public class PluginManager {
         loadPluginsByConfiguration();
         loadHotKeyToInstanceNamesByConfiguration();
     }
+    public String getBannerFromHotKey(KeyStroke hotKey) {
+
+        String banner = "";
+        for (String instanceName : hotKeyToInstanceNames.get(hotKey)) {
+            banner += instanceName;
+        }
+        return banner;
+    }
 
     private void loadHotKeyToInstanceNamesByConfiguration() {
         for (String hotKey : appConfiguration.getHotKeys()) {

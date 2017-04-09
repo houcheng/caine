@@ -141,6 +141,9 @@ public class SearchController implements Initializable {
         inputTextField.requestFocus();
 
         this.hotKey = hotkey;
+
+        String banner = pluginManager.getBannerFromHotKey(hotkey);
+        inputTextField.setPromptText(banner);
     }
 
     private void setWindowInitialHeightPosition() {
