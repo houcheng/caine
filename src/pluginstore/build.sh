@@ -24,5 +24,5 @@ movePluginStoreAndCleanUp() {
 compilePluginInterface
 
 buildPlugin
-addPlugin NullPlugin
+# addPlugin NullPlugin
 movePluginStoreAndCleanUp
