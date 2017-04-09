@@ -22,7 +22,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.*;
 import javafx.stage.Window;
-import jnr.ffi.annotations.In;
 import lombok.Getter;
 
 import javax.swing.*;
@@ -61,6 +60,7 @@ public class SearchController implements Initializable {
     @Inject
     private SearchListOrganizer searchListOrganizer;
 
+    private KeyStroke hotKey;
     private String queryString;
 
     @Override
@@ -89,7 +89,7 @@ public class SearchController implements Initializable {
         this.queryString = inputTextField.getText();
 
         if (this.queryString.length() >= MINIMUM_QUERY_STRING_LENGTH) {
-            pluginManager.updateQuery(inputTextField.getText());
+            pluginManager.updateQuery(hotKey, inputTextField.getText());
         }
     }
 
@@ -225,25 +225,18 @@ public class SearchController implements Initializable {
     private void registerHotKey() {
 
         Provider keyProvider = Provider.getCurrentProvider(false);
-        HotKeyListener keyListener = createHotKeyListener(new ActivateWindowThread());
+        HotKeyListener keyListener = createHotKeyListener();
 
         for (String hotKey : appConfiguration.getHotKeys()) {
             keyProvider.register(KeyStroke.getKeyStroke(hotKey), keyListener);
         }
+
+        this.hotKey = KeyStroke.getKeyStroke(appConfiguration.getDefaultHotKey());
     }
 
     // Configure to make platform runLater works.
     private void enablePlatformRunLater() {
         Platform.setImplicitExit(false);
-    }
-
-    private HotKeyListener createHotKeyListener(ActivateWindowThread thread) {
-        return new HotKeyListener() {
-            @Override
-            public void onHotKey(HotKey hotKey) {
-                Platform.runLater(thread);
-            }
-        };
     }
 
     public void appendSearchResult(String queryString, QueryResultGenerator results) {
@@ -269,7 +262,24 @@ public class SearchController implements Initializable {
         };
     }
 
+    private HotKeyListener createHotKeyListener() {
+        return new HotKeyListener() {
+            @Override
+            public void onHotKey(HotKey hotKey) {
+                Runnable thread = new ActivateWindowThread(hotKey.keyStroke);
+                Platform.runLater(thread);
+            }
+        };
+    }
+
     class ActivateWindowThread implements Runnable {
+
+        private final KeyStroke hotKey;
+
+        public ActivateWindowThread(KeyStroke hotKey) {
+            this.hotKey = hotKey;
+        }
+
         @Override
         public void run() {
             showWindow();
@@ -280,6 +290,8 @@ public class SearchController implements Initializable {
             Stage windowStage = (Stage) stage.getScene().getWindow();
             stage.show();
             windowStage.show();
+
+            SearchController.this.hotKey = hotKey;
 
             stage.requestFocus();
             inputTextField.requestFocus();

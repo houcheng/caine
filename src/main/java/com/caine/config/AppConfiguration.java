@@ -18,6 +18,8 @@ public class AppConfiguration {
     private static final String HOME = System.getProperty("user.home");
     private static final String CONFIG_FILE_PATH = HOME + "/.config/caine/config.yaml";
 
+    private final String defaultHotKey;
+
     private Map<String, Object> yamlConfig;
 
     public AppConfiguration() {
@@ -27,6 +29,8 @@ public class AppConfiguration {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        defaultHotKey = ((Map<String, Object>) yamlConfig.get("HotKeys")).keySet().iterator().next();
     }
 
     public Set<String> getHotKeys() {
@@ -34,7 +38,7 @@ public class AppConfiguration {
         return hotkeys.keySet();
     }
 
-    public List<String> getPluginListByHotKeys(String hotKey) {
+    public List<String> getPluginListByHotKey(String hotKey) {
         Map <String, Object> hotkeys = (Map<String, Object>) yamlConfig.get("HotKeys");
         return (List<String>) hotkeys.get(hotKey);
     }
@@ -47,6 +51,10 @@ public class AppConfiguration {
     private Map<String, Object> loadYamlConfigFromFile(File yamlFile) throws IOException {
         Yaml yaml = new Yaml();
         return (Map<String, Object>) yaml.load(Files.asByteSource(yamlFile).openStream());
+    }
+
+    public String getDefaultHotKey() {
+        return defaultHotKey;
     }
 }
 

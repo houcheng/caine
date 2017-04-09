@@ -6,6 +6,7 @@ import com.google.common.reflect.ClassPath;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.util.*;
 
@@ -16,7 +17,8 @@ import java.util.*;
 public class PluginManager {
 
     private final Map<String, Class> classMap = new HashMap<>();
-    private final Map<String, PluginProxy> pluginMap = new HashMap<>();
+    private final Map<KeyStroke, List<String>> hotKeyToInstanceNames = new HashMap<>();
+    private final Map<String, PluginProxy> nameToPluginMap = new HashMap<>();
     private final SearchController searchController;
 
     AppConfiguration appConfiguration;
@@ -29,10 +31,21 @@ public class PluginManager {
 
         tryToLoadPluginClasses();
         loadPluginsByConfiguration();
+        loadHotKeyToInstanceNamesByConfiguration();
     }
 
-    public void updateQuery(String query) {
-        for (PluginProxy pluginProxy : pluginMap.values()) {
+    private void loadHotKeyToInstanceNamesByConfiguration() {
+        for (String hotKey : appConfiguration.getHotKeys()) {
+            KeyStroke keyStroke = KeyStroke.getKeyStroke(hotKey);
+            hotKeyToInstanceNames.put(keyStroke, appConfiguration.getPluginListByHotKey(hotKey));
+        }
+    }
+
+    // TODO: add cancel query
+
+    public void updateQuery(KeyStroke hotKey, String query) {
+        for (String instanceName : hotKeyToInstanceNames.get(hotKey)) {
+            PluginProxy pluginProxy = nameToPluginMap.get(instanceName);
             pluginProxy.updateQuery(query);
         }
     }
@@ -64,7 +77,7 @@ public class PluginManager {
     }
 
     private void loadPluginsByHotKey(String hotKeys) {
-        for (String instanceName : appConfiguration.getPluginListByHotKeys(hotKeys)) {
+        for (String instanceName : appConfiguration.getPluginListByHotKey(hotKeys)) {
             String className = appConfiguration.getPluginType(instanceName);
             tryToLoadPlugin(instanceName, className);
         }
@@ -89,7 +102,7 @@ public class PluginManager {
         plugin.load(instanceName);
 
         PluginProxy proxyPlugin  = loadPluginAndProxy(plugin);
-        pluginMap.put(instanceName, proxyPlugin);
+        nameToPluginMap.put(instanceName, proxyPlugin);
     }
 
     private PluginProxy loadPluginAndProxy(Plugin plugin) {

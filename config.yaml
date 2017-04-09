@@ -2,6 +2,7 @@ HotKeys:
   'F1': [ files1 ]
   'F2': [ files2 ]
   'F3': [ null1 ]
+  'ctrl F1': [ null1 ]
 
 Settings:
   BlackTheme: true
