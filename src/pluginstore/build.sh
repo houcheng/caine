@@ -8,10 +8,11 @@ compileJavaInterface() {
 
 
 buildPlugin() {
-    jrubyc -c ../main/java/ --javac FileSearchPlugin.rb
-    jar cvf pluginstore.jar com/caine/pluginProxy/pluginstore/*.class
-    mv pluginstore.jar ../../libs/
     rm -fr ./com/
+    jrubyc -c ../main/java/ --javac FileSearchPlugin.rb
+    jrubyc -c ../main/java/ --javac NullPlugin.rb
+    jar cvf pluginstore.jar com/caine/plugin/pluginstore/*.class
+    mv pluginstore.jar ../../libs/
 }
 
 clearJavaInterfaceClass

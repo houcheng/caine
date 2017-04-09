@@ -8,7 +8,7 @@ java_package 'com.caine.plugin.pluginstore'
 java_import 'java.util.List'
 java_import 'com.caine.plugin.Plugin'
 
-class FileSearchPlugin
+class NullPlugin
 
   java_implements Plugin
 
@@ -32,23 +32,12 @@ class FileSearchPlugin
 
   java_signature 'String getName()'
   def getName()
-    return 'FileSearch'
+    return 'Null'
   end
 
   java_signature 'Object[] queryByPage(String queryString, int pageNumber)'
   def queryByPage(input_query, page_number)
-    t = Time.now
-    keywords = input_query.downcase.split.sort_by { |x| x.length }.reverse
-
-    paths = @filedb.keys
-    keywords.each do |keyword|
-      paths = paths.select {|path| @filedb[path].include?(keyword) }
-    end
-
-    p Time.now - t
-
-    # search result format: list of [ icon_uri, display_text, file_url]
-    return_ruby_array = paths.map {|path| [ '', path.split('/').last, path].to_java(:String) }
+    return_ruby_array = []
     return return_ruby_array.to_java
   end
 

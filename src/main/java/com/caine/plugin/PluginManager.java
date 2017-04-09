@@ -1,13 +1,13 @@
 package com.caine.plugin;
 
-import com.caine.pluginProxy.pluginstore.FileSearchPlugin;
+import com.caine.plugin.pluginstore.FileSearchPlugin;
 import com.caine.ui.SearchController;
+import com.google.common.reflect.ClassPath;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Manages plugins based on configuration file.
@@ -26,14 +26,6 @@ public class PluginManager {
         tryToLoadAllPlugins();
     }
 
-    public PluginProxy getPluginByName() {
-        return null;
-    }
-
-    public List<PluginProxy> getAllPlugins() {
-        return null;
-    }
-
     public void updateQuery(String query) {
         for (PluginProxy pluginProxy : pluginMap.values()) {
             pluginProxy.updateQuery(query);
@@ -41,8 +33,10 @@ public class PluginManager {
     }
 
     private void tryToLoadAllPlugins() {
+        List<Class> pluginClasses = tryToLoadPluginClasses();
+
         try {
-            registerAllPlugins();
+            registerAllPlugins(pluginClasses);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {
@@ -50,16 +44,38 @@ public class PluginManager {
         }
     }
 
-    // TODO: load only specified plugins
-    // TODO: Add a history entries search plugin for accelerating search
-    private void registerAllPlugins() throws IllegalAccessException, InstantiationException {
-
-        registerPlugin(FileSearchPlugin.class);
+    private List<Class> tryToLoadPluginClasses() {
+        try {
+            ClassPath cp = ClassPath.from(Thread.currentThread().getContextClassLoader());
+            return loadClasses(cp);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return Collections.emptyList();
     }
 
-    private void registerPlugin(Class rubyPluginClass) throws IllegalAccessException, InstantiationException {
+    private List<Class> loadClasses(ClassPath cp) throws ClassNotFoundException {
+        List<Class> classesList = new LinkedList();
+        for(ClassPath.ClassInfo info : cp.getTopLevelClasses("com.caine.plugin.pluginstore")) {
+            System.out.println("Load plugin: " + info.getName());
+            classesList.add(Class.forName(info.getName()));
+        }
 
-        Plugin plugin = (Plugin) rubyPluginClass.newInstance();
+        return classesList;
+    }
+
+    // TODO: Add a history entries search plugin for accelerating search
+    private void registerAllPlugins(List<Class> pluginClasses) throws IllegalAccessException, InstantiationException {
+        for (Class pluginClass : pluginClasses) {
+            registerPlugin(pluginClass);
+        }
+    }
+
+    private void registerPlugin(Class pluginClass) throws IllegalAccessException, InstantiationException {
+
+        Plugin plugin = (Plugin) pluginClass.newInstance();
         PluginProxy proxyPlugin  = loadPluginAndProxy(plugin);
         pluginMap.put(plugin.getName(), proxyPlugin);
     }

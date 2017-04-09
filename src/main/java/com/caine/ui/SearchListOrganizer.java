@@ -18,7 +18,7 @@ import java.util.List;
  * Handles content and UI status update of search list view.
  */
 @Singleton
-public class SearchListOrganizer {
+class SearchListOrganizer {
 
     private final HistoryLookupTable historyLookupTable;
     private final SearchController searchController;
@@ -33,50 +33,36 @@ public class SearchListOrganizer {
     private int listViewSize;
 
     @Inject
-    public SearchListOrganizer(HistoryLookupTable historyLookupTable, SearchController searchController) {
+    SearchListOrganizer(HistoryLookupTable historyLookupTable, SearchController searchController) {
         this.historyLookupTable = historyLookupTable;
         this.listView = searchController.getListView();
         this.searchController = searchController;
     }
 
-    public void updateCurrentIndexByListSelection() {
+    void updateCurrentIndexByListSelection() {
         currentIndex = listView.getSelectionModel().getSelectedIndex();
     }
 
-    public void moveSelectedItemByPage(int pageOffset) {
+    void moveSelectedItemByPage(int pageOffset) {
         moveSelectedItem(pageOffset * listViewSize);
     }
 
-    public void moveSelectedItem(int offset) {
+    void moveSelectedItem(int offset) {
         int newIndex = calculateNewIndexByOffset(offset);
         updateListViewByIndex(newIndex);
     }
 
-    public void updateListViewSize(int size) {
+    void updateListViewSize(int size) {
         this.listViewSize = size;
     }
 
-    private int calculateNewIndexByOffset(int offset) {
-
-        int newIndex = currentIndex + offset;
-
-        if (newIndex < 0) {
-            return 0;
-        }
-        if (newIndex > listView.getItems().size()) {
-            return listView.getItems().size() - 1;
-        }
-
-        return newIndex;
-    }
-
-    public void updateQueryString(String queryString) {
+    void updateQueryString(String queryString) {
 
         currentQueryString = queryString;
         clearResultList();
     }
 
-    public void appendQueryResult(String queryString, QueryResultGenerator results) {
+    void appendQueryResult(String queryString, QueryResultGenerator results) {
 
         if(! queryString.equals(currentQueryString)) {
             updateQueryString(queryString);
@@ -89,6 +75,17 @@ public class SearchListOrganizer {
         }
 
         searchController.updateWindowSizeByItemNumber(itemCount);
+    }
+
+    QueryResult getCurrentQueryResult() {
+
+        if (currentIndex >= 0) {
+            QueryResult result = queryResultList.get(currentIndex);
+            historyLookupTable.access(result.getHandleUri());
+            return result;
+        }
+
+        return null;
     }
 
     private void updateListViewByIndex(int newIndex) {
@@ -114,26 +111,30 @@ public class SearchListOrganizer {
         listView.setItems(observableResultList);
     }
 
+    private int calculateNewIndexByOffset(int offset) {
+
+        int newIndex = currentIndex + offset;
+
+        if (newIndex < 0) {
+            return 0;
+        }
+        if (newIndex >= listView.getItems().size()) {
+            return listView.getItems().size() - 1;
+        }
+
+        return newIndex;
+    }
+
     private void appendQueryResultItem(QueryResult result) {
 
         observableResultList.add(result.getDisplayText());
         queryResultList.add(result);
     }
 
-    int getListViewIndex() {
+    private int getListViewIndex() {
         ListViewSkin<?> skin = (ListViewSkin<?>) listView.getSkin();
         VirtualFlow<?> vf = (VirtualFlow<?>) skin.getChildren().get(0);
         return vf.getFirstVisibleCell().getIndex();
     }
 
-    public QueryResult getCurrentQueryResult() {
-
-        if (currentIndex >= 0) {
-            QueryResult result = queryResultList.get(currentIndex);
-            historyLookupTable.access(result.getHandleUri());
-            return result;
-        }
-
-        return null;
-    }
 }
