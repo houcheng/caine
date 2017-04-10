@@ -25,4 +25,6 @@ compilePluginInterface
 
 buildPlugin
 addPlugin NullPlugin
+addPlugin ChromeBookmarkPlugin
+
 movePluginStoreAndCleanUp

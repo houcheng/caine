@@ -13,8 +13,7 @@ class NullPlugin
   java_implements Plugin
 
   SEARCH_ITEMS_LIMIT = 100
-  PLUGIN_CONFIG = "#{ENV['HOME']}/.config/caine/FileSearchPlugin.yaml"
-
+  CONFIG_YAML = "#{ENV['HOME']}/.config/caine/config.yaml"
 
   java_signature 'void load(String name)'
   def load(instance_name)
