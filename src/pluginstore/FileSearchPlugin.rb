@@ -12,8 +12,8 @@ class FileSearchPlugin
 
   java_implements Plugin
 
-  SEARCH_ITEMS_LIMIT = 100
-  PLUGIN_CONFIG = "#{ENV['HOME']}/.config/caine/FileSearchPlugin.yaml"
+  SEARCH_ITEMS_LIMIT = 200
+  CONFIG_YAML = "#{ENV['HOME']}/.config/caine/config.yaml"
 
   def initialize()
 
@@ -27,11 +27,12 @@ class FileSearchPlugin
   end
 
   def load_config_dirs()
-    # TODO: load config by instance_name
-    @config = YAML.load_file(PLUGIN_CONFIG)
-
-    dirs = @config["dirs"].map { |s| s + '/**/*' }
+    config_file = YAML.load_file(CONFIG_YAML)
+    @config = config_file[@instance_name]
+    dirs = @config['scanDirectories']
+                          .map { |s| s + '/**/*' }
                           .map { |s| s.gsub('~', "#{ENV['HOME']}")}
+    return dirs
   end
 
   def load_filedb(dirs)
@@ -44,19 +45,17 @@ class FileSearchPlugin
     end
   end
 
+  # return array of string array and the strings are $icon_uri, $display_text, and $file_url
   java_signature 'Object[] queryByPage(String queryString, int pageNumber)'
   def queryByPage(input_query, page_number)
-    t = Time.now
+    # t = Time.now
     keywords = input_query.downcase.split.sort_by { |x| x.length }.reverse
 
     paths = @filedb.keys
     keywords.each do |keyword|
       paths = paths.select {|path| @filedb[path].include?(keyword) }
     end
-
-    p Time.now - t
-
-    # search result format: list of [ icon_uri, display_text, file_url]
+    # p Time.now - t
     return_ruby_array = paths.map {|path| [ '', path.split('/').last, path].to_java(:String) }
     return return_ruby_array.to_java
   end
