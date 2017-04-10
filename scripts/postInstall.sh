@@ -1,0 +1,1 @@
+cp /opt/caine/bin/caine.desktop /usr/share/applications/

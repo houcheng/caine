@@ -1,20 +1,30 @@
 HotKeys:
-  'F1': [ files1 ]
-  'F2': [ files2 ]
-  'F3': [ null1 ]
+  'F1': [ MyWritings ]
+  'F2': [ MyReadingsEbooks ]
+  'F3': [ SourceCodeProjects ]
+  'F4': [ MusicAudioBooks ]
   'ctrl F1': [ null1 ]
 
-Settings:
-  BlackTheme: true
-  fontSize: 32
+# TODO:
+# Settings:
+#   BlackTheme: true
+#   fontSize: 32
 
-files1:
+MyWritings:
   type: FileSearchPlugin
-  scanDirectories: [ '~/Dropbox' ]
+  scanDirectories: ['~/Dropbox/2Writing']
 
-files2:
+MyReadingsEbooks:
   type: FileSearchPlugin
-  scanDirectories: [ '~/Dropbox' ]
+  scanDirectories: ['~/Dropbox/1Reading', '~/Dropbox/eBook', '~/eBook']
+
+SourceCodeProjects:
+  type: FileSearchPlugin
+  scanDirectories: ['~/source/caine/']
+
+MusicAudioBooks:
+  type: FileSearchPlugin
+  scanDirectories: ['~/Music/']
 
 null1:
   type: NullPlugin

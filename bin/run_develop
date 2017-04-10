@@ -1,1 +1,9 @@
-java -Djava.library.path=./libs -cp "$HOME/.config/caine/*:build/jfx/app/project-jfx.jar"  com.caine.ui.MainApplication
+#!/bin/bash
+
+JAR_LIB=./build/jfx/app/lib
+JFX_JAR=./build/jfx/app/project-jfx.jar
+JNI_LIB=./lib
+CONFIG_DIR=$HOME/.config/caine
+
+java -Djava.library.path=$JNI_LIB -cp "$CONFIG_DIR/*:$PROG_LIB/*:$JFX_JAR" \
+     com.caine.ui.MainApplication

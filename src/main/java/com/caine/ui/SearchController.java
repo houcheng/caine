@@ -107,6 +107,11 @@ public class SearchController implements Initializable {
 
         } else if(keyEvent.getCode() == KeyCode.ENTER) {
             openQueryResult(searchListOrganizer.getCurrentQueryResult());
+            pluginManager.cancelQuery(hotKey);
+            clearHideUI();
+            keyEvent.consume();
+        } else if(keyEvent.getCode() == KeyCode.ESCAPE) {
+            pluginManager.cancelQuery(hotKey);
             clearHideUI();
             keyEvent.consume();
         }
@@ -114,7 +119,7 @@ public class SearchController implements Initializable {
 
     public void handleMouseClickedOnList(MouseEvent mouseEvent) {
         searchListOrganizer.updateCurrentIndexByListSelection();
-
+    
         if (mouseEvent.getClickCount() == 2) {
             openQueryResult(searchListOrganizer.getCurrentQueryResult());
             clearHideUI();
@@ -183,7 +188,7 @@ public class SearchController implements Initializable {
 
         String uri = selectedResult.getHandleUri();
         if (uri.startsWith("http:") || uri.startsWith("https:") || uri.startsWith("ftp:")) {
-            openUri(uri);
+            openFile(uri);
         } else if (uri.startsWith("app:")) {
 
         } else {

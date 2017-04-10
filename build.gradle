@@ -50,7 +50,13 @@ ospackage {
     arch = I386
     os = LINUX
 
+    // dependency should changed to x86 32 64 both okay
+    // requires('openjdk-8-jre')
+    // requires('openjfx')
+
     user = 'root'
+
+    postInstall file('scripts/postInstall.sh')
 
     into '/opt/caine'
 
@@ -68,6 +74,10 @@ ospackage {
 
     from('config') {
         into 'config'
+    }
+
+    from('res') {
+        into 'res'
     }
 
     from('bin') {

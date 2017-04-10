@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=Caine
+Comment=Caine is a hot-key activate search utility
+Exec=/opt/caine/bin/caine
+Path=/opt/caine/
+Icon=/opt/caine/res/caine.png
+Terminal=false
+Type=Application
+Categories=Utility;Application

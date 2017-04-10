@@ -17,7 +17,7 @@ addPlugin() {
 }
 
 movePluginStoreAndCleanUp() {
-    mv pluginstore.jar ../../libs/
+    mv pluginstore.jar ../../lib/
     rm -fr com
 }
 

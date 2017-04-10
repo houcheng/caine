@@ -58,6 +58,13 @@ public class PluginManager {
         }
     }
 
+    public void cancelQuery(KeyStroke hotKey) {
+        for (String instanceName : hotKeyToInstanceNames.get(hotKey)) {
+            PluginProxy pluginProxy = nameToPluginMap.get(instanceName);
+            pluginProxy.cancelQuery();
+        }
+    }
+
     private void tryToLoadPluginClasses() {
         try {
 
@@ -119,4 +126,5 @@ public class PluginManager {
         new Thread(proxyPlugin).start();
         return proxyPlugin;
     }
+
 }

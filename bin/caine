@@ -1,6 +1,7 @@
 #!/bin/bash
 
 PROG_DIR=/opt/caine
+PROG_LIB=/opt/caine/lib
 CONFIG_DIR=$HOME/.config/caine
 
 checkConfigDirs() {
@@ -16,4 +17,4 @@ checkConfigDirs
 
 checkConfigFile
 
-java -Djava.library.path=$PROG_DIR/lib -cp "$CONFIG_DIR/*:/opt/caine/lib/*" com.caine.ui.MainApplication
+java -Djava.library.path=$PROG_LIB -cp "$CONFIG_DIR/*:$PROG_LIB/*" com.caine.ui.MainApplication
