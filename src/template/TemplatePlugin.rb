@@ -8,7 +8,7 @@ java_package 'com.caine.plugin.pluginstore'
 java_import 'java.util.List'
 java_import 'com.caine.plugin.Plugin'
 
-class NullPlugin
+class TemplatePlugin
 
   java_implements Plugin
 

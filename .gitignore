@@ -12,5 +12,6 @@ data/
 
 src/jni/*.o
 src/jni/*.so
+src/pluginstore/*.jar
 
-libs/pluginstore.jar
+lib/pluginstore.jar
