@@ -47,12 +47,12 @@ ospackage {
     packageName = 'caine'
     version = '1.0.0'
     release = '1'
-    arch = I386
+    // arch = I386
     os = LINUX
 
     // dependency should changed to x86 32 64 both okay
-    // requires('openjdk-8-jre')
-    // requires('openjfx')
+    requires('openjdk-8-jre')
+    requires('openjfx')
 
     user = 'root'
 
