@@ -1,4 +1,9 @@
+## Install
 
+1. Download debian file
+2. Run `sudo apt install  -f ./caine_1.0.0-1_all.deb`
+3. Run `/opt/caine/bin/caine`. After see the input screen displayed, close the program by ctrl-C.
+4. Edit the generated configuration file, `~/.config/caine/config.yaml` for your needed.
 
 ## Development environment setup
 
@@ -30,7 +35,6 @@ The software is composed of Java main program and Ruby scripts based plugins. We
 3. run ./generate_header.sh and ./build.sh
 
 ## Reference
-
 
 [JNI call X11](http://codequirks.blogspot.ca/2008/06/using-xlib-with-jni.html)
 
