@@ -2,9 +2,11 @@ package com.caine.plugin;
 
 import com.caine.config.AppConfiguration;
 import com.caine.ui.SearchController;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.reflect.ClassPath;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import lombok.Getter;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -18,6 +20,8 @@ public class PluginManager {
 
     private final Map<String, Class> classMap = new HashMap<>();
     private final Map<KeyStroke, List<String>> hotKeyToInstanceNames = new HashMap<>();
+    @VisibleForTesting
+    @Getter
     private final Map<String, PluginProxy> nameToPluginMap = new HashMap<>();
     private final SearchController searchController;
 
@@ -33,11 +37,12 @@ public class PluginManager {
         loadPluginsByConfiguration();
         loadHotKeyToInstanceNamesByConfiguration();
     }
+
     public String getBannerFromHotKey(KeyStroke hotKey) {
 
         String banner = "";
         for (String instanceName : hotKeyToInstanceNames.get(hotKey)) {
-            banner += instanceName;
+            banner += instanceName + " ";
         }
         return banner;
     }

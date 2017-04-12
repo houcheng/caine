@@ -2,7 +2,6 @@ package com.caine.plugin;
 
 import com.caine.core.QueryResultGenerator;
 import com.caine.ui.SearchController;
-import org.jruby.RubyArray;
 
 import static java.lang.Thread.sleep;
 
@@ -15,8 +14,10 @@ public class PluginProxyImpl implements Runnable, PluginProxy {
     protected final SearchController searchController;
 
     private String queryString;
-    private boolean queryUpdate;
+
+    private boolean queryUpdateFlag;
     private boolean cancelQueryFlag;
+    private boolean shutdownFlag;
 
     private Object synchronizeObject = new Object();
 
@@ -30,29 +31,41 @@ public class PluginProxyImpl implements Runnable, PluginProxy {
     @Override
     public synchronized void updateQuery(String queryString) {
         this.queryString = queryString;
-        queryUpdate = true;
+        queryUpdateFlag = true;
         cancelQueryFlag = false;
-        synchronized (synchronizeObject) {
-            synchronizeObject.notify();
-        }
+        notifyWaitingThread();
     }
 
     @Override
     public synchronized void cancelQuery() {
-        queryUpdate = false;
+        queryUpdateFlag = false;
         cancelQueryFlag = true;
     }
 
+    public void shutdown() {
+        shutdownFlag = true;
+        notifyWaitingThread();
+    }
+
     public void run() {
-        while(true) {
-            if (! queryUpdate) {
+        while(! shutdownFlag) {
+            if (!queryUpdateFlag) {
                 waitQueryUpdate();
             }
 
             delayForInput();
 
+            if(shutdownFlag) {
+                break;
+            }
             String query = getQueryString();
             queryPlugin(query);
+        }
+    }
+
+    private void notifyWaitingThread() {
+        synchronized (synchronizeObject) {
+            synchronizeObject.notify();
         }
     }
 
@@ -97,7 +110,7 @@ public class PluginProxyImpl implements Runnable, PluginProxy {
     }
 
     private synchronized  String getQueryString() {
-        queryUpdate = false;
+        queryUpdateFlag = false;
         return queryString;
     }
 }

@@ -58,7 +58,7 @@ public class SearchController implements Initializable {
     @Inject
     private SearchListOrganizer searchListOrganizer;
 
-    private KeyStroke hotKey;
+    private KeyStroke currenyHoyKey;
     private String queryString;
 
     @Override
@@ -73,7 +73,9 @@ public class SearchController implements Initializable {
         enablePlatformRunLater();
         registerHotKey();
 
+        initializeCurrentHotKeyAndBanner();
         initializeUIAutoGrow();
+
         setWindowWidthPosition();
         setWindowInitialHeightPosition();
     }
@@ -83,7 +85,7 @@ public class SearchController implements Initializable {
         this.queryString = inputTextField.getText();
 
         if (this.queryString.length() >= MINIMUM_QUERY_STRING_LENGTH) {
-            pluginManager.updateQuery(hotKey, inputTextField.getText());
+            pluginManager.updateQuery(currenyHoyKey, inputTextField.getText());
         }
     }
 
@@ -107,11 +109,11 @@ public class SearchController implements Initializable {
 
         } else if(keyEvent.getCode() == KeyCode.ENTER) {
             openQueryResult(searchListOrganizer.getCurrentQueryResult());
-            pluginManager.cancelQuery(hotKey);
+            pluginManager.cancelQuery(currenyHoyKey);
             clearHideUI();
             keyEvent.consume();
         } else if(keyEvent.getCode() == KeyCode.ESCAPE) {
-            pluginManager.cancelQuery(hotKey);
+            pluginManager.cancelQuery(currenyHoyKey);
             clearHideUI();
             keyEvent.consume();
         }
@@ -145,7 +147,16 @@ public class SearchController implements Initializable {
         stage.requestFocus();
         inputTextField.requestFocus();
 
-        this.hotKey = hotkey;
+        updateCurrentHotKeyAndBanner(hotkey);
+    }
+
+    private void initializeCurrentHotKeyAndBanner() {
+        KeyStroke defaultHotKey = KeyStroke.getKeyStroke(appConfiguration.getDefaultHotKey());
+        updateCurrentHotKeyAndBanner(defaultHotKey);
+    }
+
+    private void updateCurrentHotKeyAndBanner(KeyStroke hotkey) {
+        this.currenyHoyKey = hotkey;
 
         String banner = pluginManager.getBannerFromHotKey(hotkey);
         inputTextField.setPromptText(banner);
@@ -245,7 +256,6 @@ public class SearchController implements Initializable {
             keyProvider.register(KeyStroke.getKeyStroke(hotKey), keyListener);
         }
 
-        this.hotKey = KeyStroke.getKeyStroke(appConfiguration.getDefaultHotKey());
     }
 
     // Configure to make platform runLater works.

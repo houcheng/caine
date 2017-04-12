@@ -25,12 +25,14 @@ public class MainModule extends AbstractModule {
 
     @Provides
     public SearchController controller() throws IOException {
+
         SearchController controller = loader.getController();
         return controller;
     }
 
     @Provides
     public ListView listView() throws IOException {
+
         return controller().getListView();
     }
 
