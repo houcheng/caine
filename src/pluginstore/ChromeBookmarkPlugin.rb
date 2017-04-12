@@ -10,30 +10,71 @@ class ChromeBookmarkPlugin
 
   java_implements Plugin
 
-  SEARCH_ITEMS_LIMIT = 100
   CONFIG_YAML = "#{ENV['HOME']}/.config/caine/config.yaml"
+  CONFIG_FILENAME = 'filename'
+
+  SEARCH_ITEMS_LIMIT = 100
 
   java_signature 'void load(String name)'
   def load(instance_name)
     @instance_name = instance_name
     @config = load_config()
 
-    bookmarks = parse_bookmark(@config['filename'])
-    if bookmarks == nil
-      p "Failed to find scope \"#{@config['filename']}\" in bookmark"
-      return
+    load_bookmark_if_modified(@config[CONFIG_FILENAME])
+  end
+
+  # return array of string array and the strings are $icon_uri, $display_text, and $file_url
+  java_signature 'Object[] queryByPage(String queryString, int pageNumber)'
+  def queryByPage(input_query, page_number)
+
+    load_bookmark_if_modified(@config[CONFIG_FILENAME])
+
+    # t = Time.now
+    keywords = input_query.downcase.split.sort_by { |x| x.length }.reverse
+
+    bookmark_names = @keydb.keys
+    keywords.each do |keyword|
+      bookmark_names = bookmark_names.select {|bookmark_name| @keydb[bookmark_name].include?(keyword) }
     end
 
-    build_database(bookmarks)
+    # p Time.now - t
+    return_ruby_array = bookmark_names
+        .map { |bookmark_name| [ '', bookmark_name.split('::')[-1], @urldb[bookmark_name] ].to_java(:String) }
+    return return_ruby_array#.to_java
   end
+
+  java_signature 'boolean hasMorePage(int pageNumber)'
+  def hasMorePage(page_number)
+    return false
+  end
+
+private
 
   def load_config()
     config_file = YAML.load_file(CONFIG_YAML)
     config = config_file[@instance_name]
 
-    config['filename'] = config['filename'].gsub('~', "#{ENV['HOME']}")
+    config[CONFIG_FILENAME] = config[CONFIG_FILENAME].gsub('~', "#{ENV['HOME']}")
 
     return config
+  end
+
+  def load_bookmark_if_modified(filename)
+    if @bookmark_file_date != File.mtime(filename)
+      p (@bookmark_file_date == nil) ? "Loading bookmark file: #{filename}" : "Reloading bookmark file: #{filename}"
+      @bookmark_file_date = File.mtime(filename)
+      load_bookmark(filename)
+    end
+  end
+
+  def load_bookmark(filename)
+    bookmarks = parse_bookmark(filename)
+    if bookmarks == nil
+      p "Failed to load bookmark: \"#{filename}\""
+      return
+    end
+
+    build_database(bookmarks)
   end
 
   def parse_bookmark(filename)
@@ -80,31 +121,4 @@ class ChromeBookmarkPlugin
     @urldb[bookmark_name] = bookmark['url']
     @keydb[bookmark_name] = bookmark_name.downcase
   end
-
-  # return array of string array and the strings are $icon_uri, $display_text, and $file_url
-  java_signature 'Object[] queryByPage(String queryString, int pageNumber)'
-  def queryByPage(input_query, page_number)
-    # t = Time.now
-    keywords = input_query.downcase.split.sort_by { |x| x.length }.reverse
-
-    bookmark_names = @keydb.keys
-    keywords.each do |keyword|
-      bookmark_names = bookmark_names.select {|bookmark_name| @keydb[bookmark_name].include?(keyword) }
-    end
-
-    # p Time.now - t
-    return_ruby_array = bookmark_names
-        .map { |bookmark_name| [ '', bookmark_name.split('::')[-1], @urldb[bookmark_name] ].to_java(:String) }
-    return return_ruby_array#.to_java
-  end
-
-  java_signature 'boolean hasMorePage(int pageNumber)'
-  def hasMorePage(page_number)
-    return false
-  end
 end
-
-# test code, it's a pity here.
-# test_instance = ChromeBookmarkPlugin.new
-# test_instance.load('Chromebookmark1')
-# test_instance.queryByPage('DVD', 5)
