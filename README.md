@@ -4,15 +4,22 @@ Caine is a instant search utility inspired by [Alfred](https://www.alfredapp.com
 
 Caine provides binary release in RPM and Debian package. Only Ubuntu 16.04 was tested.
 
-## Installation
+## Binaries and installation
 
-1. Download debian file
-2. Run `sudo apt install  -f ./caine_1.0.0-1_all.deb`
-3. Run `/opt/caine/bin/caine-init-config`
-4. Edit the generated configuration file, `~/.config/caine/config.yaml` for your needed.
+Binary packages
 
-Example configuration file:
+- [Debian package](https://github.com/houcheng/caine/raw/master/release/caine_1.0.0-1_all.deb)
+- [RPM package](xx)
 
+Installation steps:
+
+
+1. Download the package
+2. Install package by command: `sudo apt install -f ./caine_1.0.0-1_all.deb`
+3. Create default configuration by command: `/opt/caine/bin/caine-init-config`
+4. Edit the default configuration file, `vi ~/.config/caine/config.yaml`
+
+An example configuration file:
 
 ```
 HotKeys:
