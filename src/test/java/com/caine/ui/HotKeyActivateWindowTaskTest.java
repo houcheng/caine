@@ -13,7 +13,7 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HotKeyActivateWindowTaskTest {
-    private static final KeyStroke KEY_STROKE_F1 = KeyStroke.getKeyStroke("F1");
+    private static final KeyStroke KEY_STROKE_F1 = KeyStroke.getKeyStroke("HOT_KEY_STRING");
 
     @Mock
     SearchController searchController;

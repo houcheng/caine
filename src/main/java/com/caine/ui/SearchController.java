@@ -4,6 +4,7 @@ import com.caine.config.AppConfiguration;
 import com.caine.core.QueryResult;
 import com.caine.core.QueryResultGenerator;
 import com.caine.plugin.PluginManager;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.tulskiy.keymaster.common.HotKey;
 import com.tulskiy.keymaster.common.HotKeyListener;
@@ -37,13 +38,17 @@ import static java.lang.Integer.min;
  * results onto SearchListOrganizer
  */
 public class SearchController implements Initializable {
-    private static final int MINIMUM_QUERY_STRING_LENGTH = 3;
+
+    @VisibleForTesting
+    public static final int MINIMUM_QUERY_STRING_LENGTH = 3;
 
     private final double WINDOW_WIDTH_TO_DESKTOP = 0.6;
     private final double WINDOW_HEIGHT_TO_DESKTOP = 0.9;
 
     private Stage stage;
 
+    @VisibleForTesting
+    @Getter
     @FXML
     public TextField inputTextField;
 
@@ -51,19 +56,23 @@ public class SearchController implements Initializable {
     @FXML
     public ListView<String> listView;
 
-    @Inject
     private AppConfiguration appConfiguration;
-    @Inject
     private PluginManager pluginManager;
-    @Inject
     private SearchListOrganizer searchListOrganizer;
 
     private KeyStroke currenyHoyKey;
     private String queryString;
 
+    @Inject
+    public void updateDependencies(AppConfiguration appConfiguration, PluginManager pluginManager,
+            SearchListOrganizer searchListOrganizer) {
+        this.appConfiguration = appConfiguration;
+        this.pluginManager = pluginManager;
+        this.searchListOrganizer = searchListOrganizer;
+    }
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-
     }
 
     public void initializeUI(Stage stage) {
@@ -148,6 +157,7 @@ public class SearchController implements Initializable {
         inputTextField.requestFocus();
 
         updateCurrentHotKeyAndBanner(hotkey);
+
     }
 
     private void initializeCurrentHotKeyAndBanner() {

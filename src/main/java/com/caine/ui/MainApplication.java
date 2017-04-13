@@ -21,7 +21,7 @@ public class MainApplication extends Application {
     public void start(Stage primaryStage) throws Exception{
 
         createGuiceInstances();
-        injectGuiceDependecies(primaryStage);
+        injectGuiceDependencies();
 
         initializePrimaryStage(primaryStage);
     }
@@ -47,7 +47,7 @@ public class MainApplication extends Application {
         injector.getInstance(PluginManager.class);
     }
 
-    private void injectGuiceDependecies(Stage primaryStage) {
+    private void injectGuiceDependencies() {
         injector.injectMembers(searchController);
     }
 

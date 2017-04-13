@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class PluginManagerTest {
 
-    private static final String HOT_KEY_F1 = "F1";
+    private static final String HOT_KEY_F1 = "HOT_KEY_STRING";
     private static final KeyStroke KEY_STROKE_F1 = KeyStroke.getKeyStroke(HOT_KEY_F1);
     private static final String PLUGIN1_NAME = "pluginProxy1";
     private static final String PLUGIN2_NAME = "pluginProxy2";
