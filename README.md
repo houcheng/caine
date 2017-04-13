@@ -2,24 +2,26 @@
 
 Caine is a instant search utility inspired by [Alfred](https://www.alfredapp.com/) Mac application. Caine perform search in multi-threaded, each plugin can create multiple plugin instance and execute in its own thread. Plugin is written in ruby, and we use jruby to convert ruby script into efficient java code. Right now, two plugins is provided: 1) file search based on file name, and 2) chrome bookmark search.
 
-Caine provides binary release in RPM and Debian package. Only Ubuntu 16.04 was tested.
+Below is demostration of file and bookmark plugins:
+
+![Demostration](demo.gif "Demostration of file and chrome bookmark search plugins")
+
 
 ## Binaries and installation
 
-Binary packages
+Caine provides binary release in RPM and Debian package. Only Ubuntu 16.04 was tested:
 
-- [Debian package](https://github.com/houcheng/caine/raw/master/release/caine_1.0.0-1_all.deb)
-- [RPM package](xx)
+- [Debian package](https://github.com/houcheng/caine/raw/master/release/caine_1.0.0-1_all.deb) for Ubuntu.
+- [RPM package](xx) for Redhat.
 
-Installation steps:
-
+### Installation steps:
 
 1. Download the package
 2. Install package by command: `sudo apt install -f ./caine_1.0.0-1_all.deb`
 3. Create default configuration by command: `/opt/caine/bin/caine-init-config`
 4. Edit the default configuration file, `vi ~/.config/caine/config.yaml`
 
-An example configuration file:
+### Example configuration file:
 
 ```
 HotKeys:
