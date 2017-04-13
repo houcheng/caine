@@ -7,9 +7,6 @@ import javax.swing.*;
 
 import static com.caine.ui.MainApplication.APPLICATION_WINDOW_NAME;
 
-/**
- *
- */
 class HotKeyActivateWindowTask implements Runnable {
 
     private SearchController searchController;

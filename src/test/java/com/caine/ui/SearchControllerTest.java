@@ -1,6 +1,7 @@
 package com.caine.ui;
 
 import com.caine.config.AppConfiguration;
+import com.caine.core.CommandEngine;
 import com.caine.core.QueryResultGenerator;
 import com.caine.plugin.PluginManager;
 import de.saxsys.javafx.test.JfxRunner;
@@ -31,10 +32,13 @@ public class SearchControllerTest {
     private static final String DEFAULT_BANNER = "Default Banner";
     public static final String HOT_KEY_STRING = "HOT_KEY_STRING";
     public static final KeyStroke HOT_KEY_STROKE = KeyStroke.getKeyStroke(HOT_KEY_STRING);
+    public static final int DELAY_FOR_INPUT_DELAY = 500;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
+    @Mock
+    private CommandEngine commandEngine;
     @Mock
     private AppConfiguration appConfiguration;
     @Mock
@@ -48,28 +52,10 @@ public class SearchControllerTest {
     private SearchController searchController;
     private Stage stage;
 
-    private void initializeUI() throws IOException {
+    void initializeUI() throws IOException {
         loadSearchWindowFromResource();
         setupMocks();
         searchController.initializeUI(stage);
-    }
-
-    private void loadSearchWindowFromResource() throws IOException {
-
-        FXMLLoader loader = new FXMLLoader(SearchControllerTest.class.getResource("/SearchWindow.fxml"));
-        Parent root = loader.load();
-        stage = new Stage();
-        stage.setScene(new Scene(root));
-
-        searchController = loader.getController();
-    }
-
-    private void setupMocks() {
-
-        searchController.updateDependencies(appConfiguration, pluginManager, searchListOrganizer);
-
-        when(appConfiguration.getDefaultHotKey()).thenReturn(HOT_KEY_STRING);
-        when(pluginManager.getBannerFromHotKey(HOT_KEY_STROKE)).thenReturn(DEFAULT_BANNER);
     }
 
     @Test
@@ -83,10 +69,9 @@ public class SearchControllerTest {
     }
 
     @Test
-    @TestInJfxThread
-    public void handleKeyTypedOnTextField() throws IOException {
+    public void testHandleKeyTypedOnTextField() throws IOException, InterruptedException {
 
-        initializeUI();
+        initializeUIOnUIThread();
 
         String inputText = "";
         for (int i = 0; i < SearchController.MINIMUM_QUERY_STRING_LENGTH; i++) {
@@ -97,12 +82,13 @@ public class SearchControllerTest {
             searchController.handleKeyTypedOnTextField(createKeyTypedEvent(KeyCode.A));
         }
 
-        verify(pluginManager).updateQuery(HOT_KEY_STROKE, inputText);
+        Thread.sleep(DELAY_FOR_INPUT_DELAY);
+        verify(pluginManager, times(3)).updateQuery(HOT_KEY_STROKE, inputText);
     }
 
     @Test
     @TestInJfxThread
-    public void handleKeyPressedUp() throws IOException {
+    public void testHandleKeyPressedUp() throws IOException {
 
         initializeUI();
 
@@ -112,7 +98,7 @@ public class SearchControllerTest {
 
     @Test
     @TestInJfxThread
-    public void handleKeyPressedDown() throws IOException {
+    public void testHandleKeyPressedDown() throws IOException {
 
         initializeUI();
 
@@ -122,7 +108,7 @@ public class SearchControllerTest {
 
     @Test
     @TestInJfxThread
-    public void handleKeyPressedPageDown() throws IOException {
+    public void testHandleKeyPressedPageDown() throws IOException {
 
         initializeUI();
 
@@ -132,7 +118,7 @@ public class SearchControllerTest {
 
     @Test
     @TestInJfxThread
-    public void handleKeyPressedPageUp() throws IOException {
+    public void testHandleKeyPressedPageUp() throws IOException {
 
         initializeUI();
 
@@ -142,7 +128,7 @@ public class SearchControllerTest {
 
     @Test
     @TestInJfxThread
-    public void handleKeyPressedEnter() throws IOException {
+    public void testHandleKeyPressedEnter() throws IOException {
 
         initializeUI();
 
@@ -157,7 +143,7 @@ public class SearchControllerTest {
 
     @Test
     @TestInJfxThread
-    public void handleKeyPressedEscape() throws IOException {
+    public void testHandleKeyPressedEscape() throws IOException {
 
         initializeUI();
 
@@ -167,14 +153,6 @@ public class SearchControllerTest {
 
         verify(searchListOrganizer).updateQueryString("");
         verify(pluginManager).cancelQuery(KeyStroke.getKeyStroke(HOT_KEY_STRING));
-    }
-
-    private KeyEvent createKeyTypedEvent(KeyCode keyCode) {
-        return new KeyEvent(KeyEvent.KEY_PRESSED, "UP", "UP", keyCode, false, false, false, false);
-    }
-
-    private KeyEvent createKeyPressedEvent(KeyCode keyCode) {
-        return new KeyEvent(KeyEvent.KEY_PRESSED, "UP", "UP", keyCode, false, false, false, false);
     }
 
     @Test
@@ -203,14 +181,9 @@ public class SearchControllerTest {
         verify(searchListOrganizer, times(1)).getCurrentQueryResult();
     }
 
-    private MouseEvent createMouseClickEvent(int clickCount) {
-        return new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0,
-                MouseButton.PRIMARY, clickCount, true, true, true, true, true, true, true, true, true, true, null);
-    }
-
     @Test
     @TestInJfxThread
-    public void updateWindowSizeByItemNumber() throws IOException {
+    public void testUpdateWindowSizeByItemNumber() throws IOException {
 
         initializeUI();
 
@@ -221,7 +194,7 @@ public class SearchControllerTest {
 
     @Test
     @TestInJfxThread
-    public void showWindowOnHotKey() throws IOException {
+    public void testShowWindowOnHotKey() throws IOException {
 
         initializeUI();
 
@@ -230,23 +203,57 @@ public class SearchControllerTest {
 
         searchController.showWindowOnHotKey(keyStroke);
 
-        verify(pluginManager, timeout(1000)).getBannerFromHotKey(keyStroke);
+        verify(pluginManager, timeout(DELAY_FOR_INPUT_DELAY)).getBannerFromHotKey(keyStroke);
         assertThat(searchController.getInputTextField().getPromptText()).isEqualTo("Banner for F2");
     }
 
     @Test
-    public void appendSearchResult() throws InterruptedException {
-        initializeUIWithUIThread();
+    public void testAppendSearchResult() throws InterruptedException {
+        initializeUIOnUIThread();
 
         String queryString = "query string";
         searchController.getInputTextField().setText(queryString);
         searchController.handleKeyTypedOnTextField(createKeyTypedEvent(KeyCode.A));
+        Thread.sleep(DELAY_FOR_INPUT_DELAY);
+
         searchController.appendSearchResult(queryString, queryResultGenerator);
 
         verify(searchListOrganizer, timeout(1000)).appendQueryResult(queryString, queryResultGenerator);
     }
 
-    private void initializeUIWithUIThread() throws InterruptedException {
+    private void loadSearchWindowFromResource() throws IOException {
+
+        FXMLLoader loader = new FXMLLoader(SearchControllerTest.class.getResource("/SearchWindow.fxml"));
+        Parent root = loader.load();
+        stage = new Stage();
+        stage.setScene(new Scene(root));
+
+        searchController = loader.getController();
+    }
+
+    private void setupMocks() {
+
+        searchController.updateDependencies(appConfiguration, pluginManager,
+                searchListOrganizer, commandEngine);
+
+        when(appConfiguration.getDefaultHotKey()).thenReturn(HOT_KEY_STRING);
+        when(pluginManager.getBannerFromHotKey(HOT_KEY_STROKE)).thenReturn(DEFAULT_BANNER);
+    }
+
+    private KeyEvent createKeyTypedEvent(KeyCode keyCode) {
+        return new KeyEvent(KeyEvent.KEY_PRESSED, "UP", "UP", keyCode, false, false, false, false);
+    }
+
+    private KeyEvent createKeyPressedEvent(KeyCode keyCode) {
+        return new KeyEvent(KeyEvent.KEY_PRESSED, "UP", "UP", keyCode, false, false, false, false);
+    }
+
+    private MouseEvent createMouseClickEvent(int clickCount) {
+        return new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0,
+                MouseButton.PRIMARY, clickCount, true, true, true, true, true, true, true, true, true, true, null);
+    }
+
+    private void initializeUIOnUIThread() throws InterruptedException {
 
         Platform.runLater(
                 createInitializeUIJob());
@@ -266,6 +273,4 @@ public class SearchControllerTest {
             }
         };
     }
-
-
 }

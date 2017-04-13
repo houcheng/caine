@@ -10,6 +10,7 @@ import com.sun.javafx.scene.control.skin.VirtualFlow;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MultipleSelectionModel;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -40,7 +41,8 @@ class SearchListOrganizer {
     }
 
     void updateCurrentIndexByListSelection() {
-        currentIndex = listView.getSelectionModel().getSelectedIndex();
+        MultipleSelectionModel selectionModel = listView.getSelectionModel();
+        currentIndex = selectionModel.getSelectedIndex();
     }
 
     void moveSelectedItemByPage(int pageOffset) {

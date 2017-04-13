@@ -1,6 +1,7 @@
 package com.caine.ui;
 
 import com.caine.config.AppConfiguration;
+import com.caine.core.CommandEngine;
 import com.caine.core.QueryResult;
 import com.caine.core.QueryResultGenerator;
 import com.caine.plugin.PluginManager;
@@ -9,6 +10,8 @@ import com.google.inject.Inject;
 import com.tulskiy.keymaster.common.HotKey;
 import com.tulskiy.keymaster.common.HotKeyListener;
 import com.tulskiy.keymaster.common.Provider;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -22,6 +25,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.*;
 import javafx.stage.Window;
+import javafx.util.Duration;
 import lombok.Getter;
 
 import javax.swing.*;
@@ -41,6 +45,7 @@ public class SearchController implements Initializable {
 
     @VisibleForTesting
     public static final int MINIMUM_QUERY_STRING_LENGTH = 3;
+    private static final double INPUT_QUERY_DELAY_IN_SECOND = 0.3;
 
     private final double WINDOW_WIDTH_TO_DESKTOP = 0.6;
     private final double WINDOW_HEIGHT_TO_DESKTOP = 0.9;
@@ -60,15 +65,17 @@ public class SearchController implements Initializable {
     private PluginManager pluginManager;
     private SearchListOrganizer searchListOrganizer;
 
-    private KeyStroke currenyHoyKey;
-    private String queryString;
+    private KeyStroke currentHoyKey;
+    private String queryString = "";
+    private CommandEngine commandEngine;
 
     @Inject
     public void updateDependencies(AppConfiguration appConfiguration, PluginManager pluginManager,
-            SearchListOrganizer searchListOrganizer) {
+            SearchListOrganizer searchListOrganizer, CommandEngine commandEngine) {
         this.appConfiguration = appConfiguration;
         this.pluginManager = pluginManager;
         this.searchListOrganizer = searchListOrganizer;
+        this.commandEngine = commandEngine;
     }
 
     @Override
@@ -91,11 +98,26 @@ public class SearchController implements Initializable {
 
     public void handleKeyTypedOnTextField(KeyEvent keyEvent) {
 
-        this.queryString = inputTextField.getText();
-
-        if (this.queryString.length() >= MINIMUM_QUERY_STRING_LENGTH) {
-            pluginManager.updateQuery(currenyHoyKey, inputTextField.getText());
+        if (commandEngine.isCommandString(queryString)) {
+            return;
         }
+
+        scheduleUpdateQuery();
+    }
+
+    private void scheduleUpdateQuery() {
+        final KeyFrame kf1 = new KeyFrame(Duration.seconds(INPUT_QUERY_DELAY_IN_SECOND), e -> updateQuery());
+        final Timeline timeline = new Timeline(kf1);
+        Platform.runLater(timeline::play);
+    }
+
+    private void updateQuery() {
+        queryString = inputTextField.getText();
+        if (queryString.length() < MINIMUM_QUERY_STRING_LENGTH) {
+            return;
+        }
+
+        pluginManager.updateQuery(currentHoyKey, inputTextField.getText());
     }
 
     public void handleKeyPressed(KeyEvent keyEvent) {
@@ -117,15 +139,42 @@ public class SearchController implements Initializable {
             keyEvent.consume();
 
         } else if(keyEvent.getCode() == KeyCode.ENTER) {
-            openQueryResult(searchListOrganizer.getCurrentQueryResult());
-            pluginManager.cancelQuery(currenyHoyKey);
-            clearHideUI();
-            keyEvent.consume();
+            handleEnterKeyPressed(keyEvent);
+
         } else if(keyEvent.getCode() == KeyCode.ESCAPE) {
-            pluginManager.cancelQuery(currenyHoyKey);
-            clearHideUI();
-            keyEvent.consume();
+            cancelQueryAndHide(keyEvent);
         }
+    }
+
+    private void cancelQueryAndHide(KeyEvent keyEvent) {
+        pluginManager.cancelQuery(currentHoyKey);
+        clearHideUI();
+        keyEvent.consume();
+    }
+
+    private void handleEnterKeyPressed(KeyEvent keyEvent) {
+
+        if (commandEngine.isCommandString(queryString)) {
+            scheduleExecuteCommand();
+            return;
+        }
+
+        openQueryResult(searchListOrganizer.getCurrentQueryResult());
+        cancelQueryAndHide(keyEvent);
+    }
+
+    private void scheduleExecuteCommand() {
+
+        final KeyFrame kf1 = new KeyFrame(Duration.seconds(INPUT_QUERY_DELAY_IN_SECOND), e -> executeCommand());
+        final Timeline timeline = new Timeline(kf1);
+        Platform.runLater(timeline::play);
+    }
+
+    private void executeCommand() {
+
+        queryString = inputTextField.getText();
+
+        commandEngine.executeCommand(queryString);
     }
 
     public void handleMouseClickedOnList(MouseEvent mouseEvent) {
@@ -166,7 +215,7 @@ public class SearchController implements Initializable {
     }
 
     private void updateCurrentHotKeyAndBanner(KeyStroke hotkey) {
-        this.currenyHoyKey = hotkey;
+        this.currentHoyKey = hotkey;
 
         String banner = pluginManager.getBannerFromHotKey(hotkey);
         inputTextField.setPromptText(banner);
@@ -275,7 +324,7 @@ public class SearchController implements Initializable {
 
     public void appendSearchResult(String queryString, QueryResultGenerator results) {
 
-        if(! this.queryString.equals(queryString)) {
+        if(! queryString.equals(queryString)) {
             return;
         }
 
