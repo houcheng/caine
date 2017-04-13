@@ -1,0 +1,14 @@
+CONFIG_DIR=$HOME/.config/caine
+
+checkConfigDirs() {
+    ls $CONFIG_DIR &> /dev/null || mkdir -p $CONFIG_DIR
+    ls $CONFIG_DIR/data &> /dev/null || mkdir -p $CONFIG_DIR/data
+}
+
+checkConfigFile() {
+    ls $CONFIG_DIR/config.yaml &> /dev/null || cp $PROG_DIR/config/config.yaml $CONFIG_DIR/
+}
+
+checkConfigDirs
+
+checkConfigFile
