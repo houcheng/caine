@@ -1,0 +1,19 @@
+Format: 1.8
+Date: Thu, 13 Apr 2017 15:56:35 -0400
+Source: caine
+Binary: caine
+Architecture: all
+Version: 1.0.0-1
+Urgency: low
+Maintainer: houcheng
+Changed-By: houcheng
+Description:
+ caine - caine
+Changes:
+ caine (1.0.0-1) ; urgency=low
+Checksums-Sha1:
+ 6a558302ca58d872abbba527d37a0e169bd5744d 28154346 caine_1.0.0-1_all.deb
+Checksums-Sha256:
+ 1de5403da938f9c2004e3f05dddf6052c12f5e153b3987858f3c0902d18fbd39 28154346 caine_1.0.0-1_all.deb
+Files:
+ fd5aaa83bf7a799b892a40ad3f9cfb32 28154346 java optional caine_1.0.0-1_all.deb
